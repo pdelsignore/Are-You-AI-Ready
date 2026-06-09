@@ -47,6 +47,7 @@
 
     /* Dark-flow screens (welcome + assessment) */
     #screen-welcome,
+    #screen-intro,
     #screen-assessment {
       background: var(--pp);
       color: var(--pw);
@@ -100,6 +101,7 @@
       color: var(--lp);
     }
     .header-spacer { justify-self: end; width: 1px; height: 1px; }
+    #screen-intro .page-header,
     #screen-assessment .page-header,
     #screen-upload .page-header {
       display: flex;
@@ -338,6 +340,49 @@
       font-weight: 600;
       color: var(--tq);
       margin-top: 0.75rem;
+    }
+    .upload-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+    .btn-analyze {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      max-width: 380px;
+      padding: 1.125rem 2.5rem;
+      font-family: var(--font);
+      font-variant-ligatures: none;
+      font-size: 1.0625rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: var(--pt);
+      color: var(--pp);
+      transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-analyze:hover:not(:disabled) {
+      opacity: 0.92;
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(86,226,225,0.38);
+    }
+    .btn-analyze:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .upload-actions-note {
+      margin-top: 14px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.45);
+      font-weight: 500;
+      text-align: center;
     }
     .upload-formats {
       display: flex;
@@ -835,12 +880,54 @@
           </svg>
         </div>
         <h2 class="path-card-title">Upload profile</h2>
-        <p class="path-card-desc">Export your profile from LinkedIn for detailed analysis</p>
+        <p class="path-card-desc">Upload a resume, CV, or any profile document with information about your role, skills, and experience</p>
         <span class="path-card-badge">More comprehensive</span>
       </button>
 
     </div>
 
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 1a — NAME & TITLE (before questions)
+══════════════════════════════════════════════════════════ -->
+<div id="screen-intro" class="screen">
+  <header class="page-header">
+    <button type="button" class="header-back" onclick="backFromIntro()">← Back</button>
+    <svg class="brand-logo" aria-label="Pearson" role="img" style="height:64px;width:auto;">
+      <use href="#pearson-logo"/>
+    </svg>
+    <span class="header-spacer" aria-hidden="true"></span>
+  </header>
+
+  <div class="container fade-up">
+    <p class="eyebrow" style="color:var(--tq);margin-bottom:24px;">Answer Questions</p>
+
+    <h1 style="font-size:clamp(28px,3.5vw,38px);font-weight:700;line-height:1.15;color:#fff;margin-bottom:12px;font-variant-ligatures:none;">
+      Before we begin
+    </h1>
+
+    <p style="font-size:15px;line-height:1.7;color:rgba(255,255,255,0.6);max-width:520px;margin-bottom:2rem;">
+      Tell us your name and title so we can personalize your results.
+    </p>
+
+    <div class="card" style="padding:1.75rem;margin-bottom:1.5rem;">
+      <div style="margin-bottom:1.125rem;">
+        <label class="field-label" for="input-name">Name</label>
+        <input id="input-name" type="text" placeholder="e.g. Jordan" class="field" />
+      </div>
+      <div>
+        <label class="field-label" for="input-title">Title / role</label>
+        <input id="input-title" type="text" placeholder="e.g. Product Manager" class="field" />
+      </div>
+    </div>
+
+    <button type="button" onclick="beginQuestions()" class="btn-cta"
+      style="font-size:15px;padding:15px 28px;border-radius:10px;background:var(--ame);color:#fff;">
+      Continue to questions <span aria-hidden="true">&#8594;</span>
+    </button>
+    <p style="margin-top:14px;font-size:13px;color:rgba(255,255,255,0.45);font-weight:500;">12 questions &middot; ~3 minutes</p>
   </div>
 </div>
 
@@ -868,7 +955,7 @@
     </p>
 
     <div id="upload-form-panel">
-      <div class="card" style="padding:1.75rem;margin-bottom:1.5rem;">
+      <div class="card" style="padding:1.75rem;margin-bottom:0;">
         <p class="field-label" style="margin-bottom:1rem;">Your profile document</p>
 
         <div id="upload-zone" class="upload-zone" role="button" tabindex="0" aria-label="Upload profile document">
@@ -895,11 +982,12 @@
           hidden />
       </div>
 
-      <button id="btn-analyze" type="button" onclick="analyzeProfile()" class="btn-cta" disabled
-        style="font-size:15px;padding:15px 28px;border-radius:10px;background:var(--ame);color:#fff;">
-        Analyze profile <span aria-hidden="true">&#8594;</span>
-      </button>
-      <p style="margin-top:14px;font-size:13px;color:rgba(255,255,255,0.45);font-weight:500;">No sign-up required</p>
+      <div class="upload-actions">
+        <button id="btn-analyze" type="button" onclick="analyzeProfile()" class="btn-analyze" disabled>
+          Analyze profile <span aria-hidden="true">&#8594;</span>
+        </button>
+        <p class="upload-actions-note">No sign-up required</p>
+      </div>
     </div>
 
     <div id="upload-loading" class="upload-loading card" style="display:none;padding:2.5rem;">
@@ -935,7 +1023,7 @@
     <div class="capability-results-grid" id="profile-capability-grid"></div>
 
     <div class="profile-results-actions">
-      <button type="button" class="btn-ghost" onclick="analyzeAnotherProfile()">Analyze another profile</button>
+      <button type="button" id="profile-results-back-btn" class="btn-ghost" onclick="startOverFromResults()">Start over</button>
       <button type="button" class="btn-cta" onclick="downloadProfileResults()" style="background:var(--ame);color:#fff;font-size:14px;padding:12px 28px;">Download results</button>
     </div>
   </div>
@@ -1106,6 +1194,8 @@ let answers = new Array(QUESTIONS.length).fill(null);
 /** Display order: shuffled indices into QUESTIONS */
 let questionOrder = [];
 let userName = '';
+let userTitle = '';
+let resultSource = ''; // 'questions' | 'upload'
 let domainScores = [0,0,0,0];
 
 function shuffleQuestionOrder() {
@@ -1117,14 +1207,29 @@ function shuffleQuestionOrder() {
   return arr;
 }
 
-function backFromResults() {
-  if (!questionOrder.length) {
-    showScreen('screen-welcome');
+function backFromIntro() {
+  showScreen('screen-welcome');
+}
+
+function backFromProfileResults() {
+  if (resultSource === 'questions') {
+    showScreen('screen-intro');
     return;
   }
-  currentQ = questionOrder.length - 1;
-  showScreen('screen-assessment');
-  renderQ();
+  showScreen('screen-upload');
+}
+
+function startOverFromResults() {
+  if (resultSource === 'upload') {
+    analyzeAnotherProfile();
+    return;
+  }
+  currentQ = 0;
+  answers = new Array(QUESTIONS.length).fill(null);
+  questionOrder = [];
+  domainScores = [0, 0, 0, 0];
+  profileAnalysis = null;
+  showScreen('screen-intro');
 }
 
 // ── SCREEN MANAGEMENT ───────────────────────────────────────────────
@@ -1161,10 +1266,6 @@ function goToUpload() {
 
 function backFromUpload() {
   showScreen('screen-welcome');
-}
-
-function backFromProfileResults() {
-  showScreen('screen-upload');
 }
 
 function resetUploadPanels() {
@@ -1308,9 +1409,15 @@ function renderCapabilityPillar(element, pillarData) {
   element.innerHTML = html;
 }
 
-function displayProfileResults(analysis) {
+function displayProfileResults(analysis, source) {
   profileAnalysis = analysis;
+  resultSource = source || resultSource;
   const summary = analysis.profileSummary || {};
+
+  const backBtn = document.getElementById('profile-results-back-btn');
+  if (backBtn) {
+    backBtn.textContent = resultSource === 'questions' ? 'Retake assessment' : 'Analyze another profile';
+  }
   const scores = CAPABILITY_API_KEYS.map(key => analysis[key]?.score ?? 0);
   const overall = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
 
@@ -1361,7 +1468,7 @@ async function analyzeProfile() {
       throw new Error('Could not read enough text from the document. Try a different file or ensure the document contains readable text.');
     }
     const analysis = await callAnalyzeAPI(profileText);
-    displayProfileResults(analysis);
+    displayProfileResults(analysis, 'upload');
     resetUploadPanels();
   } catch (error) {
     console.error('Profile analysis error:', error);
@@ -1414,9 +1521,51 @@ function downloadProfileResults() {
 function startAssessment() {
   currentQ = 0;
   answers = new Array(QUESTIONS.length).fill(null);
+  questionOrder = [];
+  domainScores = [0, 0, 0, 0];
+  showScreen('screen-intro');
+}
+
+function beginQuestions() {
+  const name = document.getElementById('input-name').value.trim();
+  const title = document.getElementById('input-title').value.trim();
+  if (!name) {
+    document.getElementById('input-name').focus();
+    return;
+  }
+  if (!title) {
+    document.getElementById('input-title').focus();
+    return;
+  }
+  userName = name;
+  userTitle = title;
+  currentQ = 0;
+  answers = new Array(QUESTIONS.length).fill(null);
   questionOrder = shuffleQuestionOrder();
   renderQ();
   showScreen('screen-assessment');
+}
+
+function buildQuestionnaireAnalysis() {
+  const analysis = {
+    profileSummary: {
+      name: userName,
+      currentRole: userTitle,
+      industry: '',
+      experience: 'Scores based on your responses to 12 AI readiness questions.',
+    },
+  };
+  CAPABILITY_API_KEYS.forEach((key, i) => {
+    const score = domainScores[i];
+    const d = DOMAINS[i];
+    const strat = DOMAIN_STRATEGY[i];
+    analysis[key] = {
+      score,
+      summary: `${d.blurb} You scored ${score}% — ${tierLabel(score)} readiness in this area.`,
+      recommendations: strat.steps.slice(0, 3),
+    };
+  });
+  return analysis;
 }
 
 function renderQ() {
@@ -1457,7 +1606,7 @@ function renderQ() {
   });
 
   const footerBack = document.getElementById('btn-back');
-  footerBack.textContent = currentQ === 0 ? '← Welcome' : '← Back';
+  footerBack.textContent = currentQ === 0 ? '← About you' : '← Back';
   const next = document.getElementById('btn-next');
   next.disabled = answers[origIdx] === null;
   next.textContent = currentQ === total - 1 ? 'See results →' : 'Next →';
@@ -1467,11 +1616,14 @@ function nextQuestion() {
   const origIdx = questionOrder[currentQ];
   if (answers[origIdx] === null) return;
   if (currentQ < questionOrder.length - 1) { currentQ++; renderQ(); }
-  else { calcScores(); renderResults(); showScreen('screen-results'); }
+  else {
+    calcScores();
+    displayProfileResults(buildQuestionnaireAnalysis(), 'questions');
+  }
 }
 function prevQuestion() {
   if (currentQ > 0) { currentQ--; renderQ(); }
-  else { showScreen('screen-welcome'); }
+  else { showScreen('screen-intro'); }
 }
 
 // ── SCORING ─────────────────────────────────────────────────────────
@@ -1777,8 +1929,14 @@ function retake() {
   questionOrder = [];
   domainScores = [0,0,0,0];
   userName = '';
+  userTitle = '';
+  resultSource = '';
   uploadedProfile = null;
   profileAnalysis = null;
+  const nameInput = document.getElementById('input-name');
+  const titleInput = document.getElementById('input-title');
+  if (nameInput) nameInput.value = '';
+  if (titleInput) titleInput.value = '';
   const input = document.getElementById('upload-input');
   if (input) input.value = '';
   setUploadedFile(null);
