@@ -1,4 +1,6 @@
 .env
+.vercel
 _ref-mind-the-gap/
 .DS_Store
 *.local
+.vercel
