@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Readiness | Pearson</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Pearson / diagnostic-aligned tokens ─────────────────── */
+    :root {
+      --pp:   #0D004D;
+      --pw:   #FFFFFF;
+      --white: #FFFFFF;
+      --plp:  #C1BFFF;
+      --lp:   #C1BFFF;
+      --mist: #EDECF6;
+      --pa:   #512EAB;
+      --ame:  #512EAB;
+      --pt:   #56E2E1;
+      --tq:   #56E2E1;
+      --ptt:  #B3F2F1;
+      --pamb: #FFCE00;
+      --amb:  #FFCE00;
+      --pf:   #DF41CF;
+      --fuch: #DF41CF;
+      --pft:  #EFA0E7;
+      --pdv4: #CAB7FF;
+      --ux:   #333333;
+      --font: 'Plus Jakarta Sans', Helvetica, Verdana, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+    html, body {
+      min-height: 100vh;
+      font-family: var(--font);
+      font-variant-ligatures: none;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Screens ─────────────────────────────────────────────── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* Dark-flow screens (welcome + assessment) */
+    #screen-welcome,
+    #screen-assessment {
+      background: var(--pp);
+      color: var(--pw);
+      min-height: 100vh;
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp 0.45s ease-out forwards; }
+
+    /* ── Layout ──────────────────────────────────────────────── */
+    .page-header {
+      padding: 1.375rem 2rem;
+      border-bottom: 1px solid rgba(193,191,255,0.12);
+      display: grid;
+      grid-template-columns: minmax(88px, 1fr) auto minmax(88px, 1fr);
+      align-items: center;
+      gap: 12px;
+    }
+    .page-header .brand-logo { justify-self: center; }
+    #screen-welcome .page-header {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+    }
+    #screen-welcome .page-header .brand-logo { margin: 0; }
+    .header-back {
+      justify-self: start;
+      padding: 10px 16px;
+      background: transparent;
+      border: 1.5px solid rgba(193,191,255,0.25);
+      border-radius: 8px;
+      color: rgba(193,191,255,0.75);
+      font-family: var(--font);
+      font-variant-ligatures: none;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color 0.18s, color 0.18s;
+    }
+    .header-back:hover {
+      border-color: rgba(193,191,255,0.5);
+      color: var(--lp);
+    }
+    .header-spacer { justify-self: end; width: 1px; height: 1px; }
+    #screen-assessment .page-header,
+    #screen-upload .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #screen-assessment .header-progress {
+      text-align: right;
+      max-width: 55%;
+    }
+
+    #screen-results .page-header.page-header-results {
+      background: var(--pp);
+      border-bottom: 1px solid rgba(193,191,255,0.12);
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+    }
+    .container { max-width: 720px; margin: 0 auto; padding: 3.5rem 2rem 5rem; }
+    .container-md { max-width: 600px; margin: 0 auto; padding: 2.5rem 2rem 4rem; }
+
+    /* ── Cards ───────────────────────────────────────────────── */
+    .card {
+      background: rgba(81,46,171,0.22);
+      border: 1px solid rgba(193,191,255,0.18);
+      border-radius: 16px;
+    }
+    .card-sm {
+      background: rgba(81,46,171,0.22);
+      border: 1px solid rgba(193,191,255,0.18);
+      border-radius: 12px;
+    }
+
+    /* ── Option Cards ─────────────────────────────────────────── */
+    .option-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.875rem;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(193,191,255,0.15);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, transform 0.12s;
+    }
+    .option-card:hover {
+      border-color: rgba(86,226,225,0.5);
+      background: rgba(86,226,225,0.06);
+      transform: translateY(-2px);
+    }
+    .option-card.selected {
+      border-color: var(--pt) !important;
+      background: rgba(86,226,225,0.1) !important;
+    }
+
+    /* ── Buttons ─────────────────────────────────────────────── */
+    .btn-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--pt);
+      color: var(--pp);
+      font-family: var(--font);
+      font-variant-ligatures: none;
+      font-weight: 700;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      padding: 1rem 2.5rem;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-cta:hover:not(:disabled) {
+      opacity: 0.88;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(86,226,225,0.28);
+    }
+    .btn-cta:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      color: rgba(255,255,255,0.6);
+      font-family: var(--font);
+      font-variant-ligatures: none;
+      font-weight: 600;
+      font-size: 0.9375rem;
+      border: 1px solid rgba(193,191,255,0.25);
+      border-radius: 8px;
+      padding: 0.75rem 1.5rem;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .btn-ghost:hover { color: var(--pw); border-color: rgba(193,191,255,0.5); }
+
+    /* ── Form fields ─────────────────────────────────────────── */
+    .field {
+      width: 100%;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(193,191,255,0.22);
+      border-radius: 8px;
+      color: var(--pw);
+      font-family: var(--font);
+      font-variant-ligatures: none;
+      font-size: 0.9375rem;
+      padding: 0.6875rem 0.875rem;
+      transition: border-color 0.15s;
+    }
+    .field::placeholder { color: rgba(255,255,255,0.3); }
+    .field:focus { outline: none; border-color: var(--pt); box-shadow: 0 0 0 3px rgba(86,226,225,0.1); }
+    .field option { background: var(--pa); }
+    .field-label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(193,191,255,0.65);
+      margin-bottom: 0.4rem;
+      font-variant-ligatures: none;
+    }
+
+    /* ── Progress ────────────────────────────────────────────── */
+    .progress-track { background: rgba(193,191,255,0.18); border-radius: 100px; height: 5px; }
+    .progress-fill  { background: var(--pt); height: 5px; border-radius: 100px; transition: width 0.35s ease; }
+
+    /* ── Domain badge colors ─────────────────────────────────── */
+    .dbadge-0 { background: rgba(86,226,225,0.14);  color: var(--pt);   }
+    .dbadge-1 { background: rgba(255,206,0,0.14);   color: var(--pamb); }
+    .dbadge-2 { background: rgba(223,65,207,0.14);  color: var(--pf);   }
+    .dbadge-3 { background: rgba(202,183,255,0.14); color: var(--pdv4); }
+
+    /* ── Tier chips ──────────────────────────────────────────── */
+    .tier-b { background: rgba(223,65,207,0.14); color: var(--pft); }
+    .tier-d { background: rgba(255,206,0,0.14);  color: var(--pamb); }
+    .tier-p { background: rgba(86,226,225,0.14); color: var(--ptt); }
+
+    /* ── Misc ────────────────────────────────────────────────── */
+    .section-eyebrow {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(193,191,255,0.55);
+      margin-bottom: 0.875rem;
+      font-variant-ligatures: none;
+    }
+    .divider { border: none; border-top: 1px solid rgba(193,191,255,0.1); }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem; }
+
+    /* ── Path choice cards (welcome) ─────────────────────────── */
+    .path-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .path-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      width: 100%;
+      font-family: inherit;
+      background: rgba(81,46,171,0.22);
+      border: 1px solid rgba(193,191,255,0.18);
+      border-radius: 16px;
+      padding: 2.25rem 1.5rem 1.75rem;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, transform 0.12s;
+      min-height: 300px;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .path-card:hover {
+      border-color: rgba(86,226,225,0.45);
+      background: rgba(86,226,225,0.06);
+      transform: translateY(-2px);
+    }
+    .path-card-icon {
+      margin-bottom: 1.25rem;
+      color: var(--lp);
+      line-height: 0;
+    }
+    .path-card-title {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.75rem;
+      font-variant-ligatures: none;
+    }
+    .path-card-desc {
+      font-size: 0.875rem;
+      line-height: 1.65;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: auto;
+      padding-bottom: 1.5rem;
+      max-width: 240px;
+    }
+    .path-card-badge {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--pamb);
+      background: rgba(0,0,0,0.28);
+      border: 1px solid rgba(193,191,255,0.12);
+      border-radius: 100px;
+      padding: 0.45rem 1.125rem;
+    }
+
+    /* ── Upload screen ───────────────────────────────────────── */
+    #screen-upload {
+      background: var(--pp);
+      color: var(--pw);
+      min-height: 100vh;
+    }
+    .upload-zone {
+      border: 2px dashed rgba(193,191,255,0.28);
+      border-radius: 12px;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .upload-zone:hover,
+    .upload-zone.dragover {
+      border-color: rgba(86,226,225,0.5);
+      background: rgba(86,226,225,0.05);
+    }
+    .upload-zone.has-file {
+      border-style: solid;
+      border-color: rgba(86,226,225,0.4);
+    }
+    .upload-filename {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--tq);
+      margin-top: 0.75rem;
+    }
+    .upload-formats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      justify-content: center;
+    }
+    .upload-format-chip {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: rgba(193,191,255,0.65);
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(193,191,255,0.12);
+      border-radius: 100px;
+      padding: 0.3rem 0.75rem;
+    }
+    .upload-loading,
+    .upload-error {
+      text-align: center;
+      padding: 2.5rem 1.5rem;
+    }
+    .upload-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(193,191,255,0.2);
+      border-top-color: var(--tq);
+      border-radius: 50%;
+      margin: 0 auto 1.25rem;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .upload-error-msg {
+      color: #ff8a8a;
+      font-size: 0.9375rem;
+      margin-bottom: 1.25rem;
+      line-height: 1.6;
+    }
+
+    /* ── Profile upload results (Mind-the-Learning-gap style) ── */
+    #screen-profile-results {
+      background: var(--pp);
+      color: var(--pw);
+      min-height: 100vh;
+    }
+    #screen-profile-results .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .profile-results-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem 2rem 5rem;
+    }
+    .profile-results-title {
+      text-align: center;
+      color: var(--pamb);
+      font-size: clamp(22px, 3vw, 28px);
+      font-weight: 700;
+      margin-bottom: 2rem;
+      font-variant-ligatures: none;
+    }
+    .profile-result-summary {
+      background: rgba(81,46,171,0.3);
+      border: 1px solid rgba(193,191,255,0.15);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    .profile-result-summary h4 {
+      color: #fff;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .profile-result-summary p {
+      color: var(--lp);
+      font-size: 15px;
+      line-height: 1.65;
+    }
+    .profile-overall-score {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      padding: 0.6rem 1.25rem;
+      background: rgba(0,0,0,0.22);
+      border-radius: 100px;
+      border: 1px solid rgba(193,191,255,0.12);
+    }
+    .profile-overall-score .score-val {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--tq);
+    }
+    .profile-overall-score .score-lbl {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+    }
+    .capability-results-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+    .capability-result-card {
+      background: var(--pa);
+      border: 1px solid rgba(193,191,255,0.12);
+      border-radius: 20px;
+      padding: 2rem;
+      transition: transform 0.3s;
+    }
+    .capability-result-card:hover { transform: translateY(-4px); }
+    .capability-result-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid rgba(255,206,0,0.3);
+    }
+    .capability-badge {
+      width: 45px;
+      height: 45px;
+      background: var(--pamb);
+      color: var(--pp);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .capability-result-header h4 {
+      color: #fff;
+      font-size: 17px;
+      font-weight: 700;
+      margin: 0;
+      line-height: 1.25;
+      font-variant-ligatures: none;
+    }
+    .capability-score-pill {
+      margin-left: auto;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 0.35rem 0.75rem;
+      border-radius: 100px;
+      flex-shrink: 0;
+    }
+    .capability-result-content {
+      color: rgba(255,255,255,0.9);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .capability-result-content ul {
+      list-style: none;
+      padding: 0;
+      margin: 1rem 0 0;
+    }
+    .capability-result-content li {
+      padding: 0.75rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+      border-bottom: 1px solid rgba(193,191,255,0.2);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    .capability-result-content li:last-child { border-bottom: none; }
+    .capability-result-content li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--pamb);
+      font-weight: 700;
+    }
+    .profile-results-actions {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 2.5rem;
+    }
+    @media (max-width: 680px) {
+      .capability-results-grid { grid-template-columns: 1fr; }
+      .profile-results-actions { flex-direction: column; }
+      .profile-results-actions button { width: 100%; }
+      .capability-result-header { flex-wrap: wrap; }
+      .capability-score-pill { margin-left: 0; }
+    }
+
+    /* ── Results + strategy (diagnostic-aligned, light mist body) ─ */
+    #screen-results,
+    #screen-strategy {
+      background: var(--mist);
+      color: var(--pp);
+      min-height: 100vh;
+    }
+
+    .res-hero { background: var(--pp); padding: 36px 56px 36px; }
+    .res-hero-inner { max-width: 1120px; margin: 0 auto; }
+    .res-topbar { display: flex; align-items: flex-start; justify-content: flex-start; margin-bottom: 52px; }
+    .res-eyebrow { color: var(--tq); margin-bottom: 12px; }
+    .res-h1 {
+      font-size: clamp(32px, 4.5vw, 54px);
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.08;
+      margin-bottom: 8px;
+    }
+    .res-sub { font-size: 17px; font-weight: 300; color: var(--lp); }
+
+    .readiness-row {
+      margin-top: 44px;
+      display: flex;
+      gap: 16px;
+      align-items: stretch;
+    }
+    .primary-banner {
+      flex: 1;
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(193,191,255,.25);
+      border-radius: 14px;
+      padding: 36px 40px;
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    .pf-score-block { flex-shrink: 0; text-align: center; }
+    .pf-pct {
+      font-size: 64px;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .pf-pct-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.45);
+    }
+    .pf-divider { width: 1px; height: 80px; background: rgba(255,255,255,.15); flex-shrink: 0; }
+    .pf-content { flex: 1; }
+    .pf-tag { color: var(--tq); margin-bottom: 8px; }
+    .pf-name { font-size: clamp(26px, 3.5vw, 40px); font-weight: 700; color: #fff; margin-bottom: 8px; }
+    .pf-desc { font-size: 14px; color: var(--lp); line-height: 1.6; font-weight: 300; max-width: 440px; }
+
+    .secondary-banner {
+      width: 372px;
+      flex-shrink: 0;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(193,191,255,.15);
+      border-radius: 14px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 10px;
+    }
+    .sf-tag { color: rgba(193,191,255,.55); margin-bottom: 2px; }
+    .sf-pct { font-size: 40px; font-weight: 700; line-height: 1; margin-bottom: 2px; }
+    .sf-name { font-size: 18px; font-weight: 700; color: rgba(255,255,255,.85); }
+    .sf-desc { font-size: 12px; color: rgba(193,191,255,.5); line-height: 1.5; font-weight: 300; }
+
+    .res-body { max-width: 1120px; margin: 0 auto; padding: 56px 56px 80px; }
+    .res-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 48px;
+      align-items: start;
+    }
+    .sec-label { color: var(--ame); margin-bottom: 18px; }
+
+    .hm-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 4px 28px rgba(13,0,77,.07);
+    }
+    .hm-title { font-size: 18px; font-weight: 700; color: var(--pp); margin-bottom: 4px; }
+    .hm-sub { font-size: 13px; color: #999; margin-bottom: 20px; }
+    #heatmap-svg-ready { width: 100%; height: auto; display: block; }
+    .hm-legend {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: #aaa;
+    }
+    .hm-legend-bar {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: linear-gradient(to right, #56E2E1, #FFCE00, #DF41CF);
+    }
+
+    .all-domains { margin-top: 40px; }
+    .domain-cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .domain-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 18px 20px;
+      border-top: 4px solid transparent;
+      box-shadow: 0 2px 14px rgba(13,0,77,.05);
+    }
+    .domain-card-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--pp);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .domain-card-focus-tag {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--tq);
+      background: var(--pp);
+      padding: 3px 7px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .bar-track-light { height: 5px; background: #eee; border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+    .bar-fill-light { height: 100%; border-radius: 3px; width: 0; transition: width 1.2s ease; }
+    .bar-label-light { font-size: 12px; color: #aaa; font-weight: 500; }
+
+    .insights { display: flex; flex-direction: column; gap: 24px; }
+    .ins-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 28px;
+      box-shadow: 0 4px 20px rgba(13,0,77,.06);
+    }
+    .ins-card-label { margin-bottom: 14px; }
+    .ins-body { font-size: 15px; line-height: 1.75; color: var(--ux); }
+    .ins-quote {
+      border-left: 3px solid var(--tq);
+      padding-left: 18px;
+      font-size: 16px;
+      font-style: italic;
+      color: var(--pp);
+      line-height: 1.65;
+    }
+    .recs { display: flex; flex-direction: column; gap: 14px; }
+    .rec { display: flex; gap: 14px; align-items: flex-start; }
+    .rec-n {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--pp);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .rec-text { font-size: 14px; line-height: 1.65; color: var(--ux); padding-top: 3px; }
+
+    .btn-strategy-full {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 28px;
+      background: var(--pp);
+      color: #fff;
+      font-family: var(--font);
+      font-variant-ligatures: none;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all .2s;
+      width: 100%;
+      margin-top: 4px;
+    }
+    .btn-strategy-full:hover { background: var(--ame); transform: translateY(-2px); }
+
+    .strategy-page-inner { max-width: 1120px; margin: 0 auto; padding: 56px 56px 80px; }
+    .strategy-page-h2 {
+      font-size: clamp(28px, 3.5vw, 40px);
+      font-weight: 700;
+      color: var(--pp);
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .strategy-page-sub { font-size: 15px; font-weight: 300; color: #666; margin-bottom: 32px; line-height: 1.65; }
+
+    #strategy-sections a.strategy-resource-chip:hover {
+      border-color: var(--ame) !important;
+      background: rgba(81, 46, 171, 0.06) !important;
+    }
+
+    @media (max-width: 900px) {
+      .res-grid { grid-template-columns: 1fr; }
+      .readiness-row { flex-direction: column; }
+      .secondary-banner { width: 100%; }
+      .primary-banner { flex-direction: column; gap: 20px; }
+      .pf-divider { width: 100%; height: 1px; }
+    }
+    @media (max-width: 680px) {
+      .res-hero, .res-body, .strategy-page-inner { padding-left: 24px; padding-right: 24px; }
+      #screen-results .page-header.page-header-results { padding-left: 24px; padding-right: 24px; }
+      .domain-cards { grid-template-columns: 1fr; }
+      .path-cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     INLINE SVG LOGO (white variant — used on dark backgrounds)
+     Defined once as a <symbol>, referenced with <use> throughout
+══════════════════════════════════════════════════════════ -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none;">
+  <symbol id="pearson-logo" viewBox="0 0 2411.36 892.84">
+    <g fill="#fff">
+      <path d="M365.27,293.02v.06s7.39,56.57,7.39,153.13-7.39,153.19-7.39,153.12v.06c37.77-40.09,60.94-93.93,60.94-153.17v-.03c0-59.24-23.17-113.08-60.94-153.17Z"/>
+      <path d="M366.6,394.43c-7.92-29.94-22.75-58.15-43.29-83.78-17.62-19.79-39.01-37.06-63.25-51.07,23.51,37.16,39.33,106.66,39.33,186.27s-15.79,148.95-39.25,186.15c-.18.42-.37.84-.55,1.26,13.52-7.78,26.16-16.57,37.75-26.25,40.01-38.08,66.33-83.78,73.72-133.49,1.06-8.86,1.61-17.88,1.61-27.03h0c0-17.93-2.1-35.35-6.06-52.07Z"/>
+    </g>
+    <g fill="#fff">
+      <path d="M1772.62,373.65c-75.23,0-135.17,58.93-135.17,133.09s59.75,132.85,134.98,132.85,134.98-58.75,134.98-132.9-59.57-133.03-134.8-133.03ZM1772.44,579.84c-43.23,0-69.89-33.61-69.89-73.1s26.67-73.15,69.89-73.15,69.89,33.61,69.89,73.1-26.67,73.15-69.89,73.15Z"/>
+      <path d="M826.45,373.67c-74.61,0-128.55,60.24-128.56,133.44,0,71.62,51.62,132.63,126.57,132.63,54.08,0,103.31-32.43,121.91-82.94h-65.64c-10.17,13.52-30.09,25-55.86,25-41.07,0-59.74-29.32-61.9-51.71h187.72c1.1-7.21,1.7-19.18,1.7-27.5,0-77.53-57.04-128.92-125.94-128.92ZM763.12,481.22c0-27.75,27.36-50.23,61.1-50.23s61.12,22.49,61.12,50.23h-122.23Z"/>
+      <path d="M2037.18,373.68c-63.36,0-114.57,51.18-114.57,114.56v145.02h64.24l.02-144.93c0-32.75,23.26-53.62,50.21-53.62,26.93,0,50.06,21.03,50.03,53.79l-.13,144.76h64.79v-144.98c.01-63.38-51.22-114.6-114.59-114.6Z"/>
+      <path d="M1431.05,381.76c-7.09-3.32-22.48-8.09-40.05-8.09-50.65,0-70.34,38.98-72.52,43.3v-36.82h-60.82l-.17,253.07,64.2.03v-165.59c1.76-3.42,19.78-34.16,57.09-34.16,13.95,0,26.65,4.3,29.87,5.87l22.41-57.62Z"/>
+      <path d="M1100.52,373.65c-74.69,0-135.42,58.28-135.42,134.2,0,71.09,53.25,132.03,125.22,131.88,36.23-.07,64.81-15.6,79.67-38.11v31.64h65.04s-.05-129.86-.05-129.86c-.03-73.17-60.85-129.75-134.45-129.75ZM1100.08,580.69c-43.23,0-69.9-34.11-69.9-73.6s26.68-73.6,69.9-73.6,69.9,34.11,69.9,73.6-26.68,73.6-69.9,73.6Z"/>
+      <path d="M1546.9,482.16c-42.68-9.08-59.75-12.82-59.75-27.33,0-16.42,21.88-24.97,44.97-24.97,35.06,0,60.98,19.69,63.86,21.88l32-46.96c-16.38-10.98-47.53-31.12-96.44-31.12-67.9,0-107.38,38.66-107.38,81.77,0,45.38,43.73,66.82,93.91,77.39,38.39,8.09,50.15,11.2,50.15,24.75,0,18.48-21.88,25.94-44.15,25.94-34.35,0-62.85-17.75-80.15-36.26l-35.74,46.41c14.91,14.18,53.51,46.05,114.8,46.05s109.82-34.86,109.82-78.08c0-52.28-35.75-68.82-85.9-79.49Z"/>
+      <path d="M591.01,259.58h-126.76l-.04,373.68h63.79l.05-134.64h62.96c74.16,0,123.77-51.21,123.77-119.52s-49.61-119.52-123.77-119.52ZM583,437.79h-54.95v-117.38h54.95c43.75,0,66.7,23.48,66.7,58.69s-22.95,58.69-66.7,58.69Z"/>
+    </g>
+  </symbol>
+</svg>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 1 — WELCOME
+══════════════════════════════════════════════════════════ -->
+<div id="screen-welcome" class="screen active">
+  <header class="page-header">
+    <svg class="brand-logo" aria-label="Pearson" role="img" style="height:76px;width:auto;">
+      <use href="#pearson-logo"/>
+    </svg>
+  </header>
+
+  <div class="container fade-up">
+
+    <p class="eyebrow" style="color:var(--tq);margin-bottom:24px;">
+      Workforce AI Readiness
+    </p>
+
+    <h1 style="font-size:clamp(30px,4vw,46px);font-weight:700;line-height:1.1;color:var(--lp);margin-bottom:16px;font-variant-ligatures:none;">
+      How AI-Ready<br><span style="color:#fff">Are You?</span>
+    </h1>
+
+    <p style="font-size:15px;line-height:1.7;color:rgba(255,255,255,0.6);max-width:520px;margin-bottom:28px;">
+      Benchmark your skills across the 4 capabilities employers need most — then get a personalized plan to close the gaps.
+    </p>
+
+    <div class="path-cards">
+
+      <button type="button" class="path-card" onclick="startAssessment()">
+        <div class="path-card-icon" aria-hidden="true">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <h2 class="path-card-title">Answer Questions</h2>
+        <p class="path-card-desc">Quick questionnaire about your role, skills, and experience</p>
+        <span class="path-card-badge">~3 minutes</span>
+      </button>
+
+      <button type="button" class="path-card" onclick="goToUpload()">
+        <div class="path-card-icon" aria-hidden="true">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <polyline points="9 15 12 12 15 15"/>
+          </svg>
+        </div>
+        <h2 class="path-card-title">Upload profile</h2>
+        <p class="path-card-desc">Export your profile from LinkedIn for detailed analysis</p>
+        <span class="path-card-badge">More comprehensive</span>
+      </button>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 1b — UPLOAD PROFILE
+══════════════════════════════════════════════════════════ -->
+<div id="screen-upload" class="screen">
+  <header class="page-header">
+    <button type="button" class="header-back" onclick="backFromUpload()">← Back</button>
+    <svg class="brand-logo" aria-label="Pearson" role="img" style="height:64px;width:auto;">
+      <use href="#pearson-logo"/>
+    </svg>
+    <span class="header-spacer" aria-hidden="true"></span>
+  </header>
+
+  <div class="container fade-up">
+    <p class="eyebrow" style="color:var(--tq);margin-bottom:24px;">Workforce AI Readiness</p>
+
+    <h1 style="font-size:clamp(28px,3.5vw,38px);font-weight:700;line-height:1.15;color:#fff;margin-bottom:12px;font-variant-ligatures:none;">
+      Upload profile
+    </h1>
+
+    <p style="font-size:15px;line-height:1.7;color:rgba(255,255,255,0.6);max-width:560px;margin-bottom:2rem;">
+      Upload a LinkedIn profile export, resume, CV, or any career document with information about your role, skills, and experience for a comprehensive readiness analysis.
+    </p>
+
+    <div id="upload-form-panel">
+      <div class="card" style="padding:1.75rem;margin-bottom:1.5rem;">
+        <p class="field-label" style="margin-bottom:1rem;">Your profile document</p>
+
+        <div id="upload-zone" class="upload-zone" role="button" tabindex="0" aria-label="Upload profile document">
+          <div class="path-card-icon" style="margin-bottom:0.75rem;" aria-hidden="true">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/>
+              <polyline points="9 15 12 12 15 15"/>
+            </svg>
+          </div>
+          <p style="font-size:0.9375rem;font-weight:600;color:rgba(255,255,255,0.85);margin-bottom:0.35rem;">Drop your file here or click to browse</p>
+          <p style="font-size:0.8125rem;color:rgba(255,255,255,0.45);">LinkedIn PDF · Resume · CV · Word doc · Plain text</p>
+          <div class="upload-formats" aria-hidden="true">
+            <span class="upload-format-chip">PDF</span>
+            <span class="upload-format-chip">DOCX</span>
+            <span class="upload-format-chip">TXT</span>
+          </div>
+          <p id="upload-filename" class="upload-filename" hidden></p>
+        </div>
+
+        <input id="upload-input" type="file"
+          accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+          hidden />
+      </div>
+
+      <button id="btn-analyze" type="button" onclick="analyzeProfile()" class="btn-cta" disabled
+        style="font-size:15px;padding:15px 28px;border-radius:10px;background:var(--ame);color:#fff;">
+        Analyze profile <span aria-hidden="true">&#8594;</span>
+      </button>
+      <p style="margin-top:14px;font-size:13px;color:rgba(255,255,255,0.45);font-weight:500;">No sign-up required</p>
+    </div>
+
+    <div id="upload-loading" class="upload-loading card" style="display:none;padding:2.5rem;">
+      <div class="upload-spinner" aria-hidden="true"></div>
+      <p style="font-size:1rem;font-weight:600;color:#fff;margin-bottom:0.5rem;">Analyzing your profile…</p>
+      <p style="font-size:0.875rem;color:rgba(255,255,255,0.5);">Evaluating against the 4 AI readiness capabilities</p>
+    </div>
+
+    <div id="upload-error" class="upload-error card" style="display:none;padding:2rem;">
+      <p id="upload-error-msg" class="upload-error-msg"></p>
+      <button type="button" class="btn-ghost" onclick="resetUploadError()">Try again</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 1c — PROFILE UPLOAD RESULTS
+══════════════════════════════════════════════════════════ -->
+<div id="screen-profile-results" class="screen">
+  <header class="page-header">
+    <button type="button" class="header-back" onclick="backFromProfileResults()">← Back</button>
+    <svg class="brand-logo" aria-label="Pearson" role="img" style="height:64px;width:auto;">
+      <use href="#pearson-logo"/>
+    </svg>
+    <span class="header-spacer" aria-hidden="true"></span>
+  </header>
+
+  <div class="profile-results-inner fade-up">
+    <h3 class="profile-results-title">Your AI Readiness Assessment Results</h3>
+
+    <div class="profile-result-summary" id="profile-result-summary"></div>
+
+    <div class="capability-results-grid" id="profile-capability-grid"></div>
+
+    <div class="profile-results-actions">
+      <button type="button" class="btn-ghost" onclick="analyzeAnotherProfile()">Analyze another profile</button>
+      <button type="button" class="btn-cta" onclick="downloadProfileResults()" style="background:var(--ame);color:#fff;font-size:14px;padding:12px 28px;">Download results</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 2 — ASSESSMENT
+══════════════════════════════════════════════════════════ -->
+<div id="screen-assessment" class="screen">
+  <header class="page-header">
+    <button type="button" class="header-back" onclick="prevQuestion()">← Back</button>
+    <span id="progress-domain" class="header-progress" style="font-size:13px;font-weight:500;color:rgba(193,191,255,0.6);font-variant-ligatures:none;"></span>
+  </header>
+
+  <div class="container-md">
+
+    <!-- Progress -->
+    <div style="margin-bottom:2rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;">
+        <span id="progress-label" style="font-size:13px;color:rgba(193,191,255,0.6);font-weight:500;"></span>
+        <span id="progress-pct" style="font-size:13px;font-weight:600;color:var(--tq);"></span>
+      </div>
+      <div class="progress-track">
+        <div id="progress-fill" class="progress-fill" style="width:7%;"></div>
+      </div>
+    </div>
+
+    <!-- Question card -->
+    <div id="question-card" class="card" style="padding:2rem 2rem 1.75rem;margin-bottom:1.5rem;">
+      <span id="domain-badge" style="display:inline-block;font-size:0.75rem;font-weight:700;letter-spacing:0.04em;padding:0.3rem 0.875rem;border-radius:100px;margin-bottom:1.25rem;font-variant-ligatures:none;"></span>
+      <h2 id="question-text" style="font-size:clamp(18px,2.4vw,24px);font-weight:500;color:#fff;line-height:1.45;margin-bottom:1.5rem;font-variant-ligatures:none;"></h2>
+      <div id="options-container" style="display:flex;flex-direction:column;gap:0.75rem;"></div>
+    </div>
+
+    <!-- Nav -->
+    <div style="display:flex;gap:0.875rem;">
+      <button id="btn-back" onclick="prevQuestion()" class="btn-ghost" style="flex:1;">&#8592; Back</button>
+      <button id="btn-next" onclick="nextQuestion()" disabled class="btn-cta" style="flex:2;background:var(--ame);color:#fff;font-size:14px;font-weight:600;padding:12px 28px;border-radius:8px;">Next &#8594;</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 3 — RESULTS
+══════════════════════════════════════════════════════════ -->
+<div id="screen-results" class="screen">
+
+  <header class="page-header page-header-results">
+    <button type="button" class="header-back" onclick="backFromResults()">← Back to questions</button>
+  </header>
+
+  <section class="res-hero">
+    <div class="res-hero-inner fade-up">
+      <div class="res-topbar">
+        <div>
+          <p class="eyebrow res-eyebrow">Your Results</p>
+          <h2 class="res-h1">Your AI Readiness<br>Profile</h2>
+          <p class="res-sub" id="results-subtitle"></p>
+        </div>
+      </div>
+
+      <div class="readiness-row">
+        <div class="primary-banner" id="readiness-primary-banner"></div>
+        <div class="secondary-banner" id="readiness-secondary-banner"></div>
+      </div>
+    </div>
+  </section>
+
+  <main class="res-body fade-up">
+    <div class="res-grid">
+      <div>
+        <p class="eyebrow sec-label">Readiness heat map</p>
+        <div class="hm-card">
+          <h3 class="hm-title">Your capability landscape</h3>
+          <p class="hm-sub">Each cell reflects development priority — cooler tones signal stronger readiness, warmer tones signal more room to grow</p>
+          <svg id="heatmap-svg-ready" viewBox="0 0 600 520" xmlns="http://www.w3.org/2000/svg" aria-label="Hexagonal heat map showing four AI readiness domains"></svg>
+          <div class="hm-legend" aria-label="Legend: left is stronger readiness, right is more development priority">
+            <span>Stronger readiness</span>
+            <div class="hm-legend-bar" aria-hidden="true"></div>
+            <span>More development priority</span>
+          </div>
+        </div>
+
+        <div class="all-domains">
+          <p class="eyebrow sec-label">All capability areas</p>
+          <div class="domain-cards" id="domain-summary-cards"></div>
+        </div>
+      </div>
+
+      <aside class="insights" id="results-strategy-preview" aria-label="Improvement strategy preview"></aside>
+    </div>
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 4 — STRATEGY
+══════════════════════════════════════════════════════════ -->
+<div id="screen-strategy" class="screen">
+  <header class="page-header" style="background:var(--pp);border-bottom:1px solid rgba(193,191,255,0.12);">
+    <button type="button" class="header-back" onclick="goToResults()">← Back</button>
+    <svg class="brand-logo" aria-label="Pearson" role="img" style="height:64px;width:auto;">
+      <use href="#pearson-logo"/>
+    </svg>
+    <span class="header-spacer" aria-hidden="true"></span>
+  </header>
+
+  <div class="strategy-page-inner fade-up">
+    <p class="eyebrow sec-label" style="margin-bottom:12px;">Full plan</p>
+    <h2 class="strategy-page-h2">Your improvement strategy</h2>
+    <p class="strategy-page-sub">Prioritized by your biggest growth opportunities</p>
+
+    <div id="strategy-sections" style="display:flex;flex-direction:column;gap:1.25rem;"></div>
+
+    <div style="margin-top:48px;padding-top:32px;border-top:1px solid rgba(13,0,77,0.08);display:flex;flex-wrap:wrap;gap:12px;">
+      <button onclick="goToResults()" class="btn-ghost" style="border-color:rgba(13,0,77,0.2);color:#555;">&#8592; Back to results</button>
+      <button onclick="retake()" class="btn-ghost" style="border-color:rgba(13,0,77,0.2);color:#555;">&#8635; Retake assessment</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="data.js"></script>
+<script>
+if (typeof pdfjsLib !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/** Bold the segment before the first colon (strategy step labels). */
+function formatStepHtml(step) {
+  const s = String(step);
+  const i = s.indexOf(':');
+  if (i === -1) return escapeHtml(s);
+  return `<strong>${escapeHtml(s.slice(0, i))}</strong>${escapeHtml(s.slice(i))}`;
+}
+
+function escapeAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+}
+
+/** Renders a resource chip link (strategy page). */
+function resourceChipLink(res) {
+  const label = typeof res === 'string' ? res : res.label;
+  const url = typeof res === 'string' || !res.url ? '#' : res.url;
+  return `<a class="strategy-resource-chip" href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer"
+    style="font-size:13px;background:var(--mist);border:1px solid rgba(13,0,77,0.08);color:var(--ame);
+    padding:8px 12px;border-radius:8px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">📚 ${escapeHtml(label)}</a>`;
+}
+
+/** Renders an inline text link (results preview). */
+function resourceInlineLink(res) {
+  const label = typeof res === 'string' ? res : res.label;
+  const url = typeof res === 'string' || !res.url ? '#' : res.url;
+  return `<a href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer" style="color:var(--ame);font-weight:600;text-decoration:underline;text-underline-offset:2px;">${escapeHtml(label)}</a>`;
+}
+
+// ── STATE ───────────────────────────────────────────────────────────
+let currentQ = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+/** Display order: shuffled indices into QUESTIONS */
+let questionOrder = [];
+let userName = '';
+let domainScores = [0,0,0,0];
+
+function shuffleQuestionOrder() {
+  const arr = QUESTIONS.map((_, i) => i);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function backFromResults() {
+  if (!questionOrder.length) {
+    showScreen('screen-welcome');
+    return;
+  }
+  currentQ = questionOrder.length - 1;
+  showScreen('screen-assessment');
+  renderQ();
+}
+
+// ── SCREEN MANAGEMENT ───────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active','fade-up'));
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  void el.offsetWidth;
+  el.classList.add('fade-up');
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+// ── PATH SELECTION & PROFILE UPLOAD ─────────────────────────────────
+let uploadedProfile = null;
+let profileAnalysis = null;
+
+const CAPABILITY_API_KEYS = [
+  'functionalProficiency',
+  'strategicIntelligence',
+  'ethicalStewardship',
+  'criticalHumanSkills',
+];
+
+const ACCEPTED_UPLOAD_TYPES = new Set([
+  'application/pdf',
+  'text/plain',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+]);
+
+function goToUpload() {
+  resetUploadPanels();
+  showScreen('screen-upload');
+}
+
+function backFromUpload() {
+  showScreen('screen-welcome');
+}
+
+function backFromProfileResults() {
+  showScreen('screen-upload');
+}
+
+function resetUploadPanels() {
+  document.getElementById('upload-form-panel').style.display = 'block';
+  document.getElementById('upload-loading').style.display = 'none';
+  document.getElementById('upload-error').style.display = 'none';
+}
+
+function showUploadLoading() {
+  document.getElementById('upload-form-panel').style.display = 'none';
+  document.getElementById('upload-error').style.display = 'none';
+  document.getElementById('upload-loading').style.display = 'block';
+}
+
+function showUploadError(message) {
+  document.getElementById('upload-form-panel').style.display = 'none';
+  document.getElementById('upload-loading').style.display = 'none';
+  document.getElementById('upload-error-msg').textContent = message;
+  document.getElementById('upload-error').style.display = 'block';
+}
+
+function resetUploadError() {
+  resetUploadPanels();
+}
+
+function isAcceptedUploadFile(file) {
+  if (!file) return false;
+  const ext = file.name.split('.').pop().toLowerCase();
+  return ACCEPTED_UPLOAD_TYPES.has(file.type) || ['pdf', 'txt', 'docx'].includes(ext);
+}
+
+function setUploadedFile(file) {
+  if (file && !isAcceptedUploadFile(file)) {
+    showUploadError('Unsupported file type. Please upload a PDF, DOCX, or TXT profile document.');
+    return;
+  }
+  uploadedProfile = file;
+  const zone = document.getElementById('upload-zone');
+  const nameEl = document.getElementById('upload-filename');
+  const btn = document.getElementById('btn-analyze');
+  if (file) {
+    resetUploadPanels();
+    zone.classList.add('has-file');
+    nameEl.textContent = file.name;
+    nameEl.hidden = false;
+    btn.disabled = false;
+  } else {
+    zone.classList.remove('has-file');
+    nameEl.hidden = true;
+    nameEl.textContent = '';
+    btn.disabled = true;
+  }
+}
+
+function initUpload() {
+  const zone = document.getElementById('upload-zone');
+  const input = document.getElementById('upload-input');
+  if (!zone || !input) return;
+
+  zone.addEventListener('click', () => input.click());
+  zone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+  });
+  input.addEventListener('change', () => {
+    const file = input.files && input.files[0];
+    if (file) setUploadedFile(file);
+  });
+  zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) setUploadedFile(file);
+  });
+}
+
+async function extractPdfText(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let fullText = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    fullText += textContent.items.map(item => item.str).join(' ') + '\n';
+  }
+  return fullText;
+}
+
+async function extractDocxText(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const result = await mammoth.extractRawText({ arrayBuffer });
+  return result.value;
+}
+
+async function extractDocumentText(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (file.type === 'application/pdf' || ext === 'pdf') {
+    return extractPdfText(file);
+  }
+  if (file.type === 'text/plain' || ext === 'txt') {
+    return file.text();
+  }
+  if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || ext === 'docx') {
+    return extractDocxText(file);
+  }
+  throw new Error('Unsupported file type. Please upload a PDF, DOCX, or TXT document.');
+}
+
+async function callAnalyzeAPI(profileText) {
+  const response = await fetch('/api/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ profileText }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Analysis failed. Please try again.');
+  }
+  return data;
+}
+
+function tierFromScore(score) {
+  if (score < 50) return { label: 'Beginner', cls: 'tier-b' };
+  if (score < 75) return { label: 'Developing', cls: 'tier-d' };
+  return { label: 'Proficient', cls: 'tier-p' };
+}
+
+function scoreColor(score) {
+  if (score >= 75) return '#56E2E1';
+  if (score >= 50) return '#FFCE00';
+  return '#DF41CF';
+}
+
+function renderCapabilityPillar(element, pillarData) {
+  let html = `<p>${escapeHtml(pillarData.summary)}</p><ul>`;
+  (pillarData.recommendations || []).forEach(rec => {
+    html += `<li>${escapeHtml(rec)}</li>`;
+  });
+  html += '</ul>';
+  element.innerHTML = html;
+}
+
+function displayProfileResults(analysis) {
+  profileAnalysis = analysis;
+  const summary = analysis.profileSummary || {};
+  const scores = CAPABILITY_API_KEYS.map(key => analysis[key]?.score ?? 0);
+  const overall = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+
+  document.getElementById('profile-result-summary').innerHTML = `
+    <h4>${escapeHtml(summary.name || 'Professional')}</h4>
+    <p><strong>${escapeHtml(summary.currentRole || 'Role not specified')}</strong>${summary.industry ? ' | ' + escapeHtml(summary.industry) : ''}</p>
+    <p>${escapeHtml(summary.experience || '')}</p>
+    <div class="profile-overall-score">
+      <span class="score-val" style="color:${scoreColor(overall)}">${overall}%</span>
+      <span class="score-lbl">Overall readiness</span>
+    </div>
+  `;
+
+  const grid = document.getElementById('profile-capability-grid');
+  grid.innerHTML = '';
+  CAPABILITY_API_KEYS.forEach((key, i) => {
+    const d = DOMAINS[i];
+    const pillar = analysis[key] || { score: 0, summary: '', recommendations: [] };
+    const tier = tierFromScore(pillar.score);
+    const card = document.createElement('div');
+    card.className = 'capability-result-card';
+    card.innerHTML = `
+      <div class="capability-result-header">
+        <span class="capability-badge" aria-hidden="true">${d.emoji}</span>
+        <h4>${escapeHtml(d.name)}</h4>
+        <span class="capability-score-pill ${tier.cls}" style="color:inherit;">${pillar.score}% · ${tier.label}</span>
+      </div>
+      <div class="capability-result-content" id="pillar-content-${i}"></div>
+    `;
+    grid.appendChild(card);
+    renderCapabilityPillar(document.getElementById(`pillar-content-${i}`), pillar);
+  });
+
+  showScreen('screen-profile-results');
+}
+
+async function analyzeProfile() {
+  if (!uploadedProfile) {
+    showUploadError('Please upload a profile document first.');
+    return;
+  }
+
+  showUploadLoading();
+
+  try {
+    const profileText = await extractDocumentText(uploadedProfile);
+    if (profileText.trim().length < 80) {
+      throw new Error('Could not read enough text from the document. Try a different file or ensure the document contains readable text.');
+    }
+    const analysis = await callAnalyzeAPI(profileText);
+    displayProfileResults(analysis);
+    resetUploadPanels();
+  } catch (error) {
+    console.error('Profile analysis error:', error);
+    showUploadError(error.message || 'An error occurred during analysis. Please try again.');
+  }
+}
+
+function analyzeAnotherProfile() {
+  uploadedProfile = null;
+  profileAnalysis = null;
+  const input = document.getElementById('upload-input');
+  if (input) input.value = '';
+  setUploadedFile(null);
+  resetUploadPanels();
+  showScreen('screen-upload');
+}
+
+function downloadProfileResults() {
+  if (!profileAnalysis) return;
+  const s = profileAnalysis.profileSummary || {};
+  const lines = [
+    'AI READINESS ASSESSMENT — PROFILE ANALYSIS',
+    '==========================================',
+    '',
+    'PROFILE SUMMARY',
+    `Name: ${s.name || 'Professional'}`,
+    `Role: ${s.currentRole || ''}`,
+    `Industry: ${s.industry || ''}`,
+    `Experience: ${s.experience || ''}`,
+    '',
+  ];
+  CAPABILITY_API_KEYS.forEach((key, i) => {
+    const pillar = profileAnalysis[key] || {};
+    lines.push('-----------------------------------------------------');
+    lines.push(DOMAINS[i].name.toUpperCase() + ` (${pillar.score ?? 0}%)`);
+    lines.push(pillar.summary || '');
+    lines.push('');
+    (pillar.recommendations || []).forEach(r => lines.push(`→ ${r}`));
+    lines.push('');
+  });
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ai-readiness-profile-results.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ── ASSESSMENT ──────────────────────────────────────────────────────
+function startAssessment() {
+  currentQ = 0;
+  answers = new Array(QUESTIONS.length).fill(null);
+  questionOrder = shuffleQuestionOrder();
+  renderQ();
+  showScreen('screen-assessment');
+}
+
+function renderQ() {
+  const origIdx = questionOrder[currentQ];
+  const q = QUESTIONS[origIdx];
+  const d = DOMAINS[q.domain];
+  const total = questionOrder.length;
+
+  document.getElementById('progress-label').textContent = `Question ${currentQ + 1} of ${total}`;
+  document.getElementById('progress-pct').textContent = `${Math.round(((currentQ + 1) / total) * 100)}%`;
+  document.getElementById('progress-domain').textContent = `${d.emoji} ${d.name}`;
+  document.getElementById('progress-fill').style.width = `${Math.round(((currentQ + 1) / total) * 100)}%`;
+
+  const badge = document.getElementById('domain-badge');
+  badge.textContent = `${d.emoji} ${d.name}`;
+  badge.className = `dbadge-${q.domain}`;
+
+  document.getElementById('question-text').textContent = q.text;
+
+  const container = document.getElementById('options-container');
+  container.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const sel = answers[origIdx] === i;
+    const div = document.createElement('div');
+    div.className = `option-card${sel ? ' selected' : ''}`;
+    div.onclick = () => { answers[origIdx] = i; renderQ(); };
+    div.innerHTML = `
+      <div style="flex-shrink:0;margin-top:2px;width:20px;height:20px;border-radius:50%;
+        border:2px solid ${sel ? d.color : 'rgba(193,191,255,0.3)'};
+        display:flex;align-items:center;justify-content:center;
+        background:${sel ? d.color : 'transparent'};
+        transition:all 0.15s;">
+        ${sel ? `<div style="width:7px;height:7px;background:#0D004D;border-radius:50%;"></div>` : ''}
+      </div>
+      <span style="font-size:0.9375rem;color:rgba(255,255,255,0.82);line-height:1.55;font-variant-ligatures:none;">${opt.text}</span>
+    `;
+    container.appendChild(div);
+  });
+
+  const footerBack = document.getElementById('btn-back');
+  footerBack.textContent = currentQ === 0 ? '← Welcome' : '← Back';
+  const next = document.getElementById('btn-next');
+  next.disabled = answers[origIdx] === null;
+  next.textContent = currentQ === total - 1 ? 'See results →' : 'Next →';
+}
+
+function nextQuestion() {
+  const origIdx = questionOrder[currentQ];
+  if (answers[origIdx] === null) return;
+  if (currentQ < questionOrder.length - 1) { currentQ++; renderQ(); }
+  else { calcScores(); renderResults(); showScreen('screen-results'); }
+}
+function prevQuestion() {
+  if (currentQ > 0) { currentQ--; renderQ(); }
+  else { showScreen('screen-welcome'); }
+}
+
+// ── SCORING ─────────────────────────────────────────────────────────
+function calcScores() {
+  const sums = [0,0,0,0];
+  QUESTIONS.forEach((q,i) => { sums[q.domain] += q.options[answers[i]].score; });
+  domainScores = sums.map((s,d) => Math.round(((s - DQ[d]) / (DQ[d]*2)) * 100));
+}
+
+function tier(s)      { return s < 50 ? 'beginner' : s < 75 ? 'developing' : 'proficient'; }
+function tierLabel(s) { return s < 50 ? 'Beginner'  : s < 75 ? 'Developing'  : 'Proficient'; }
+function tierChip(s)  { return s < 50 ? 'tier-b'    : s < 75 ? 'tier-d'      : 'tier-p'; }
+
+function overallReadinessHex(s) {
+  if (s >= 75) return '#56E2E1';
+  if (s >= 50) return '#FFCE00';
+  return '#DF41CF';
+}
+
+/* ── Heat map (diagnostic-aligned): gap = development priority ─────── */
+function lerp(a, b, t) { return a + (b - a) * t; }
+function h2r(hex) {
+  const h = hex.replace('#', '');
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+function r2h(r, g, b) {
+  return '#' + [r, g, b].map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
+}
+function gapColor(gap) {
+  const stops = [
+    [0, h2r('#56E2E1')],
+    [0.3, h2r('#FFE67F')],
+    [0.55, h2r('#FFCE00')],
+    [0.78, h2r('#EFA0E7')],
+    [1, h2r('#DF41CF')],
+  ];
+  for (let i = 0; i < stops.length - 1; i++) {
+    const [t0, c0] = stops[i];
+    const [t1, c1] = stops[i + 1];
+    if (gap <= t1) {
+      const t = (gap - t0) / (t1 - t0);
+      return r2h(lerp(c0[0], c1[0], t), lerp(c0[1], c1[1], t), lerp(c0[2], c1[2], t));
+    }
+  }
+  return '#DF41CF';
+}
+function isDarkHex(hex) {
+  const [r, g, b] = h2r(hex);
+  return (r * 0.299 + g * 0.587 + b * 0.114) < 155;
+}
+
+function hexPts(cx, cy, r) {
+  return Array.from({ length: 6 }, (_, i) => {
+    const a = (i * 60 - 90) * Math.PI / 180;
+    return `${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`;
+  }).join(' ');
+}
+
+/** readinessScores: array of 0–100; primaryDomainIndex = lowest score */
+function buildReadinessHeatMap(readinessScores, primaryDomainIndex) {
+  const CX = 300;
+  const CY = 256;
+  const RING = 168;
+  const R = 76;
+
+  const pos = DOMAINS.map((d, i) => {
+    const a = (i * 90 - 90) * Math.PI / 180;
+    return { x: CX + RING * Math.cos(a), y: CY + RING * Math.sin(a), d };
+  });
+
+  const gaps = readinessScores.map(s => Math.min(100, Math.max(0, 100 - s)) / 100);
+
+  let s = '<defs>';
+  pos.forEach((p, i) => {
+    const gap = gaps[i];
+    const col = gapColor(gap);
+    const colL = gapColor(Math.max(0, gap - 0.18));
+    s += `<radialGradient id="rg-ready-${i}" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="${colL}"/>
+      <stop offset="100%" stop-color="${col}"/>
+    </radialGradient>`;
+  });
+  s += '</defs>';
+
+  s += '<g opacity=".12">';
+  for (let i = 0; i < 4; i++) {
+    const n = pos[(i + 1) % 4];
+    const p = pos[i];
+    s += `<line x1="${p.x.toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${n.x.toFixed(1)}" y2="${n.y.toFixed(1)}" stroke="#0D004D" stroke-width="1.5"/>`;
+  }
+  [[0, 2], [1, 3]].forEach(([a, b]) => {
+    s += `<line x1="${pos[a].x.toFixed(1)}" y1="${pos[a].y.toFixed(1)}" x2="${pos[b].x.toFixed(1)}" y2="${pos[b].y.toFixed(1)}" stroke="#0D004D" stroke-width="1" stroke-dasharray="5,5"/>`;
+  });
+  s += '</g>';
+
+  s += `<text x="${CX}" y="${CY - 6}" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="9" font-weight="700" fill="#0D004D" opacity=".3" style="font-variant-ligatures:none;letter-spacing:2px">AI READINESS</text>`;
+  s += `<text x="${CX}" y="${CY + 8}" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="9" font-weight="700" fill="#0D004D" opacity=".3" style="font-variant-ligatures:none;letter-spacing:2px">DOMAINS</text>`;
+
+  pos.forEach((p, i) => {
+    const score = readinessScores[i];
+    const gap = gaps[i];
+    const col = gapColor(gap);
+    const dark = isDarkHex(col);
+    const tc = dark ? '#fff' : '#0D004D';
+    const isPrim = i === primaryDomainIndex;
+
+    if (isPrim) {
+      s += `<polygon points="${hexPts(p.x, p.y, R + 10)}" fill="${col}" opacity=".18"/>`;
+      s += `<polygon points="${hexPts(p.x, p.y, R + 5)}" fill="${col}" opacity=".28"/>`;
+    }
+
+    s += `<polygon points="${hexPts(p.x, p.y, R)}" fill="url(#rg-ready-${i})" stroke="white" stroke-width="2.5"/>`;
+
+    if (isPrim) {
+      s += `<text x="${p.x.toFixed(1)}" y="${(p.y - R - 10).toFixed(1)}" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="8" font-weight="700" fill="${col}" style="font-variant-ligatures:none;letter-spacing:1.5px">▲ PRIMARY FOCUS</text>`;
+    }
+
+    const lines = p.d.name.toUpperCase().split(' ');
+    const mid = Math.ceil(lines.length / 2);
+    const line1 = lines.slice(0, mid).join(' ');
+    const line2 = lines.slice(mid).join(' ');
+    s += `<text x="${p.x.toFixed(1)}" y="${(p.y - 22).toFixed(1)}" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="10" font-weight="700" fill="${tc}" style="font-variant-ligatures:none;letter-spacing:0.5px">${line1}</text>`;
+    if (line2) {
+      s += `<text x="${p.x.toFixed(1)}" y="${(p.y - 10).toFixed(1)}" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="10" font-weight="700" fill="${tc}" style="font-variant-ligatures:none;letter-spacing:0.5px">${line2}</text>`;
+    }
+
+    s += `<text x="${p.x.toFixed(1)}" y="${(p.y + 14).toFixed(1)}" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="26" font-weight="700" fill="${tc}" style="font-variant-ligatures:none">${score}%</text>`;
+
+    const lbl = score >= 75 ? 'STRONG' : score >= 50 ? 'BUILDING' : 'PRIORITY';
+    s += `<text x="${p.x.toFixed(1)}" y="${(p.y + 30).toFixed(1)}" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="8" font-weight="600" fill="${tc}" opacity=".65" style="font-variant-ligatures:none;letter-spacing:1px">${lbl}</text>`;
+  });
+
+  const svg = document.getElementById('heatmap-svg-ready');
+  if (svg) svg.innerHTML = s;
+}
+
+// ── RESULTS ─────────────────────────────────────────────────────────
+function renderResults() {
+  const overall = Math.round(domainScores.reduce((a, b) => a + b, 0) / 4);
+  const greeting = userName ? `${userName}, here's` : "Here's";
+  document.getElementById('results-subtitle').textContent =
+    `${greeting} how you score across the four AI readiness domains`;
+
+  const ranked = domainScores.map((s, i) => ({ s, i })).sort((a, b) => a.s - b.s);
+  const primaryIdx = ranked[0].i;
+  const secondaryIdx = ranked[1].i;
+  const primaryDomain = DOMAINS[primaryIdx];
+  const secondaryDomain = DOMAINS[secondaryIdx];
+  const primaryScore = domainScores[primaryIdx];
+  const secondaryScore = domainScores[secondaryIdx];
+  const primaryStrategy = DOMAIN_STRATEGY[primaryIdx];
+  const secondaryStrategy = DOMAIN_STRATEGY[secondaryIdx];
+  const overallHex = overallReadinessHex(overall);
+  const secGapCol = gapColor((100 - secondaryScore) / 100);
+
+  document.getElementById('readiness-primary-banner').innerHTML = `
+    <div class="pf-score-block">
+      <div class="pf-pct" style="color:${overallHex}">${overall}</div>
+      <div class="pf-pct-label">Overall readiness</div>
+    </div>
+    <div class="pf-divider" aria-hidden="true"></div>
+    <div class="pf-content">
+      <p class="eyebrow pf-tag">Primary growth area</p>
+      <h3 class="pf-name">${primaryDomain.emoji} ${primaryDomain.name}</h3>
+      <p class="pf-desc">${primaryDomain.blurb} <strong style="color:rgba(255,255,255,0.95)">${primaryStrategy.subtitle}</strong></p>
+    </div>
+  `;
+
+  document.getElementById('readiness-secondary-banner').innerHTML = `
+    <p class="eyebrow sf-tag">Secondary focus</p>
+    <div class="sf-pct" style="color:${secGapCol}">${secondaryScore}%</div>
+    <div class="sf-name">${secondaryDomain.emoji} ${secondaryDomain.name}</div>
+    <div class="sf-desc">${secondaryStrategy.subtitle}</div>
+  `;
+
+  buildReadinessHeatMap(domainScores, primaryIdx);
+
+  const cards = document.getElementById('domain-summary-cards');
+  cards.innerHTML = DOMAINS.map(d => {
+    const s = domainScores[d.id];
+    const col = gapColor((100 - s) / 100);
+    const isPrim = d.id === primaryIdx;
+    return `
+      <div class="domain-card" style="border-top-color:${col}">
+        <div class="domain-card-name">
+          <span>${d.emoji} ${d.name}</span>
+          ${isPrim ? '<span class="domain-card-focus-tag">Primary focus</span>' : ''}
+        </div>
+        <div class="bar-track-light">
+          <div class="bar-fill-light" style="background:${col}" data-w="${s}"></div>
+        </div>
+        <div class="bar-label-light">${s}% readiness · ${tierLabel(s)}</div>
+      </div>
+    `;
+  }).join('');
+
+  requestAnimationFrame(() => setTimeout(() => {
+    document.querySelectorAll('.bar-fill-light').forEach(el => {
+      el.style.width = el.getAttribute('data-w') + '%';
+    });
+  }, 200));
+
+  const previewSteps = primaryStrategy.steps.slice(0, 3);
+  const resourceBlock = (primaryStrategy.resources && primaryStrategy.resources.length)
+    ? `<div>
+      <p class="eyebrow sec-label ins-card-label">Suggested resources</p>
+      <div class="ins-card">
+        <p class="ins-quote" style="font-style:normal;font-size:14px;">
+          ${primaryStrategy.resources.slice(0, 2).map(r => `· ${resourceInlineLink(r)}`).join('<br/>')}
+        </p>
+      </div>
+    </div>`
+    : '';
+  document.getElementById('results-strategy-preview').innerHTML = `
+    <div>
+      <p class="eyebrow sec-label ins-card-label">Your improvement strategy</p>
+      <div class="ins-card">
+        <p class="ins-body">
+          Your biggest opportunity is <strong>${primaryDomain.name}</strong> (${primaryScore}% readiness).
+          ${primaryStrategy.subtitle} Prioritize practical reps in this area first so other domains compound more easily.
+        </p>
+      </div>
+    </div>
+    <div>
+      <p class="eyebrow sec-label ins-card-label">Start here</p>
+      <div class="ins-card">
+        <div class="recs">
+          ${previewSteps.map((step, i) => `
+            <div class="rec">
+              <div class="rec-n" aria-hidden="true">${i + 1}</div>
+              <p class="rec-text">${formatStepHtml(step)}</p>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+    ${resourceBlock}
+    <button type="button" class="btn-strategy-full" onclick="goToStrategy()">See full improvement strategy →</button>
+  `;
+}
+
+function goToStrategy() { renderStrategy(); showScreen('screen-strategy'); }
+function goToResults()  { showScreen('screen-results'); }
+
+// ── STRATEGY ────────────────────────────────────────────────────────
+function renderStrategy() {
+  const sorted = domainScores.map((s,i) => ({s,i})).sort((a,b) => a.s - b.s);
+  const priorityLabels = ['Top priority','Priority 2','Priority 3','Priority 4'];
+  const container = document.getElementById('strategy-sections');
+  container.innerHTML = '';
+
+  sorted.forEach(({s, i}, rank) => {
+    const d = DOMAINS[i];
+    const strat = DOMAIN_STRATEGY[i];
+    const resSection = (strat.resources && strat.resources.length)
+      ? `<hr style="border:none;border-top:1px solid rgba(13,0,77,0.08);margin:1.25rem 0;" />
+      <p class="eyebrow sec-label" style="margin-bottom:12px;">Suggested resources</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        ${strat.resources.map(r => resourceChipLink(r)).join('')}
+      </div>`
+      : '';
+    const sec = document.createElement('div');
+    sec.className = 'hm-card';
+    sec.style.marginBottom = '0';
+    sec.innerHTML = `
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.25rem;">
+        <div style="display:flex;align-items:flex-start;gap:0.875rem;">
+          <span style="font-size:1.5rem;flex-shrink:0;line-height:1;">${d.emoji}</span>
+          <div>
+            <p style="font-size:17px;font-weight:700;color:var(--pp);margin-bottom:4px;font-variant-ligatures:none;">${d.name}</p>
+            <p style="font-size:14px;color:#666;line-height:1.5;">${strat.subtitle}</p>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;">
+          <span class="eyebrow" style="font-size:9px;letter-spacing:1.5px;background:var(--mist);color:var(--ame);padding:6px 10px;border-radius:100px;">${priorityLabels[rank]}</span>
+          <span class="${tierChip(s)}" style="font-size:11px;font-weight:700;padding:6px 10px;border-radius:100px;letter-spacing:0.04em;white-space:nowrap;">${tierLabel(s)} · ${s}%</span>
+        </div>
+      </div>
+
+      <p class="eyebrow sec-label" style="margin-bottom:12px;">Action steps</p>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:14px;margin-bottom:1.25rem;">
+        ${strat.steps.map((step,idx) => `
+          <li style="display:flex;gap:12px;align-items:flex-start;">
+            <span style="flex-shrink:0;width:26px;height:26px;border-radius:50%;
+              background:var(--pp);color:#fff;
+              display:flex;align-items:center;justify-content:center;
+              font-size:12px;font-weight:700;margin-top:2px;">${idx+1}</span>
+            <span style="font-size:14px;color:var(--ux);line-height:1.65;font-variant-ligatures:none;">${formatStepHtml(step)}</span>
+          </li>
+        `).join('')}
+      </ul>
+
+      ${resSection}
+    `;
+    container.appendChild(sec);
+  });
+}
+
+// ── RETAKE ──────────────────────────────────────────────────────────
+function retake() {
+  currentQ = 0;
+  answers = new Array(QUESTIONS.length).fill(null);
+  questionOrder = [];
+  domainScores = [0,0,0,0];
+  userName = '';
+  uploadedProfile = null;
+  profileAnalysis = null;
+  const input = document.getElementById('upload-input');
+  if (input) input.value = '';
+  setUploadedFile(null);
+  resetUploadPanels();
+  showScreen('screen-welcome');
+}
+
+initUpload();
+</script>
+</body>
+</html>

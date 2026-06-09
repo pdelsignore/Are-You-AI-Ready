@@ -1,0 +1,9 @@
+{
+  "name": "ai-readiness-user",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Readiness assessment — questionnaire and profile upload paths",
+  "scripts": {
+    "start": "python3 server.py"
+  }
+}
