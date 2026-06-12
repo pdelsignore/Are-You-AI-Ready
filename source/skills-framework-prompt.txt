@@ -1,0 +1,38 @@
+SKILLS FRAMEWORK (use this to score each identified skill):
+
+A Skills Framework rates signal strength from profile evidence. Points are assigned per input type and proficiency level, then summed per skill (scores target 100, may exceed).
+
+Proficiency levels (index order for point arrays): Beginner, Advanced Beginner, Competent, Proficient, Expert
+- Beginner: Neither background knowledge nor prior experience required.
+- Advanced Beginner: Basic understanding required.
+- Competent: Some prior experience and generalized understanding required.
+- Proficient: Prior experience and knowledge required; can make decisions.
+- Expert: Advanced experience and knowledge required; can adapt and innovate.
+
+Credential input points by proficiency level [Beginner, Advanced Beginner, Competent, Proficient, Expert]:
+- Attendance: [1, 1, 2, 2, 3] — events, conferences, webinars
+- Learning: [2, 4, 6, 8, 10] — structured unmeasured learning
+- Validation: [4, 8, 12, 16, 20] — measured learning and assessments
+- Experience: [8, 16, 24, 32, 40] — real-world demonstration validated by managers/experts
+- Certification: [10, 20, 30, 40, 50] — industry-recognized certifications/licenses
+
+Work experience points by proficiency level:
+- Current role: [20, 40, 60, 80, 100] — O*NET-style role expertise
+- Past roles: [10, 20, 30, 40, 50]
+
+Education points by proficiency level: [12, 24, 36, 48, 62]
+Degree mapping: Beginner=Certificate; Advanced Beginner=Associate/trade; Competent=Bachelor's; Proficient=Master's; Expert=Doctoral
+
+Weighting when mapping evidence to skills:
+- Credentials: 1–5 skills per credential. First 2 skills at 100%, bottom 3 at 50%.
+- Job roles: 8 skills per role. First 3 skills at 100%, bottom 5 at 50%.
+- Education: 8 skills per degree. First 3 skills at 100%, bottom 5 at 50%.
+
+Scoring method:
+1. Extract AI-relevant skills evidenced in the profile.
+2. For each skill, identify strongest evidence (credential, current role, past role, or education).
+3. Assign proficiency level for that evidence using framework definitions.
+4. Look up base points from matching input type and proficiency index.
+5. Apply primary/secondary weighting within that evidence bundle.
+6. Sum contributing signals per skill. Display score 0–100 (may exceed 100 only with exceptional expert evidence, max 120).
+7. Map each skill to one of the four AI readiness capability areas.

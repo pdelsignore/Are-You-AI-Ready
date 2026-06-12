@@ -1,4 +1,5 @@
 import https from 'https';
+import { buildFrameworkPromptSection } from './skills-framework.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -53,21 +54,23 @@ export default async function handler(req, res) {
 }
 
 function buildPrompt(profileText) {
-  return `You are an expert in workforce AI readiness assessment. Analyze the following professional profile document (LinkedIn export, resume, CV, or similar) and evaluate the person against Pearson's four AI Readiness capability areas.
+  const framework = buildFrameworkPromptSection();
 
-The four capability areas are:
+  return `You are an expert workforce analyst. Analyze the professional profile below using Pearson's Skills Framework and four AI Readiness capability areas.
 
-1. **Functional Proficiency** — Using AI tools effectively in day-to-day work (prompting, tool fluency, verifying outputs, integrating AI into workflows).
+${framework}
 
-2. **Strategic Intelligence** — Spotting where AI adds value, exercising judgment on AI recommendations, understanding AI's impact on their industry and role.
+The four AI readiness capability areas (use for capability field and rollup scores):
+1. Functional Proficiency — AI tool use, prompting, workflow integration
+2. Strategic Intelligence — spotting AI value, judgment, industry awareness
+3. Ethical Stewardship — responsible, privacy-aware, fair AI use
+4. Critical Human Skills — adaptability, collaboration, human-centered problem solving
 
-3. **Ethical Stewardship** — Responsible, privacy-aware, and fair use of AI; bias awareness; transparency and data handling.
-
-4. **Critical Human Skills** — Adaptability, collaboration, creative problem-solving, and human-centered thinking that AI cannot replace.
-
-Based on this profile document:
-1. Provide a brief profile summary (name if available, current role, industry, experience estimate).
-2. For EACH of the 4 capability areas, assign a readiness score from 0–100 (based on evidence in the profile — skills, roles, projects, certifications, language used), write a one-sentence summary, and provide 2–3 specific, actionable recommendations tailored to this person's background.
+Based on the profile document:
+1. Provide a brief profile summary.
+2. Build a skillsTable: identify 6–12 AI-relevant skills evidenced in the profile. Score EACH skill using the Skills Framework methodology above.
+3. Compute the 4 capability area scores as the rounded average of skills mapped to that capability (or best evidence if fewer skills).
+4. For each capability area, write a one-sentence summary and 2–3 tailored recommendations.
 
 Profile document:
 ${profileText}
@@ -80,6 +83,16 @@ Respond with valid JSON in this exact format:
     "industry": "Their industry",
     "experience": "Brief experience summary"
   },
+  "skillsTable": [
+    {
+      "skill": "Skill name",
+      "capability": "Functional Proficiency",
+      "score": 72,
+      "proficiencyLevel": "Competent",
+      "signalType": "Current role",
+      "evidence": "Brief evidence from profile"
+    }
+  ],
   "functionalProficiency": {
     "score": 65,
     "summary": "One sentence overview",
@@ -107,10 +120,10 @@ function callOpenAI(apiKey, prompt) {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify({
       model: 'gpt-4o',
-      max_tokens: 2500,
+      max_tokens: 4000,
       response_format: { type: 'json_object' },
       messages: [
-        { role: 'system', content: 'You are a workforce AI readiness analyst. Always respond with valid JSON only.' },
+        { role: 'system', content: 'You are a workforce skills analyst. Score profiles using the provided Skills Framework. Always respond with valid JSON only.' },
         { role: 'user', content: prompt },
       ],
     });

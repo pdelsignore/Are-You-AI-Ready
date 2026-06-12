@@ -563,6 +563,74 @@
       color: var(--pamb);
       font-weight: 700;
     }
+    .skills-table-section {
+      margin-bottom: 2rem;
+    }
+    .skills-table-heading {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.35rem;
+      text-align: center;
+    }
+    .skills-table-sub {
+      font-size: 0.8125rem;
+      color: rgba(193,191,255,0.55);
+      text-align: center;
+      margin-bottom: 1.25rem;
+      line-height: 1.6;
+    }
+    .skills-table-wrap {
+      background: rgba(81,46,171,0.28);
+      border: 1px solid rgba(193,191,255,0.15);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .skills-score-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    .skills-score-table thead {
+      background: rgba(0,0,0,0.22);
+    }
+    .skills-score-table th {
+      padding: 0.875rem 1rem;
+      text-align: left;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--pamb);
+      border-bottom: 1px solid rgba(193,191,255,0.15);
+    }
+    .skills-score-table td {
+      padding: 0.875rem 1rem;
+      color: rgba(255,255,255,0.88);
+      border-bottom: 1px solid rgba(193,191,255,0.1);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    .skills-score-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .skills-score-table tbody tr:hover {
+      background: rgba(86,226,225,0.04);
+    }
+    .skills-score-table .col-score {
+      font-weight: 700;
+      white-space: nowrap;
+      width: 72px;
+    }
+    .skills-score-table .col-level {
+      white-space: nowrap;
+      color: var(--lp);
+      font-size: 0.8125rem;
+    }
+    .skills-score-table .col-evidence {
+      color: rgba(255,255,255,0.62);
+      font-size: 0.8125rem;
+    }
     .profile-results-actions {
       display: flex;
       justify-content: center;
@@ -576,6 +644,8 @@
       .profile-results-actions button { width: 100%; }
       .capability-result-header { flex-wrap: wrap; }
       .capability-score-pill { margin-left: 0; }
+      .skills-table-wrap { overflow-x: auto; }
+      .skills-score-table { min-width: 640px; }
     }
 
     /* ── Results + strategy (diagnostic-aligned, light mist body) ─ */
@@ -1020,6 +1090,26 @@
 
     <div class="profile-result-summary" id="profile-result-summary"></div>
 
+    <div id="profile-skills-table-section" class="skills-table-section" hidden>
+      <h4 class="skills-table-heading">Skills Framework Scores</h4>
+      <p class="skills-table-sub">Each skill scored using credential, work experience, and education signals from the Pearson Skills Framework</p>
+      <div class="skills-table-wrap">
+        <table class="skills-score-table">
+          <thead>
+            <tr>
+              <th>Skill</th>
+              <th>Capability</th>
+              <th>Score</th>
+              <th>Level</th>
+              <th>Signal</th>
+              <th>Evidence</th>
+            </tr>
+          </thead>
+          <tbody id="profile-skills-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="capability-results-grid" id="profile-capability-grid"></div>
 
     <div class="profile-results-actions">
@@ -1409,6 +1499,33 @@ function renderCapabilityPillar(element, pillarData) {
   element.innerHTML = html;
 }
 
+function renderSkillsTable(rows) {
+  const section = document.getElementById('profile-skills-table-section');
+  const tbody = document.getElementById('profile-skills-table-body');
+  if (!section || !tbody) return;
+
+  if (!rows || !rows.length) {
+    section.hidden = true;
+    tbody.innerHTML = '';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(row => {
+    const score = row.score ?? 0;
+    return `
+      <tr>
+        <td><strong>${escapeHtml(row.skill || '—')}</strong></td>
+        <td>${escapeHtml(row.capability || '—')}</td>
+        <td class="col-score" style="color:${scoreColor(score)}">${score}%</td>
+        <td class="col-level">${escapeHtml(row.proficiencyLevel || '—')}</td>
+        <td class="col-level">${escapeHtml(row.signalType || '—')}</td>
+        <td class="col-evidence">${escapeHtml(row.evidence || '—')}</td>
+      </tr>
+    `;
+  }).join('');
+  section.hidden = false;
+}
+
 function displayProfileResults(analysis, source) {
   profileAnalysis = analysis;
   resultSource = source || resultSource;
@@ -1430,6 +1547,12 @@ function displayProfileResults(analysis, source) {
       <span class="score-lbl">Overall readiness</span>
     </div>
   `;
+
+  if (resultSource === 'upload') {
+    renderSkillsTable(analysis.skillsTable || []);
+  } else {
+    renderSkillsTable(null);
+  }
 
   const grid = document.getElementById('profile-capability-grid');
   grid.innerHTML = '';
@@ -1500,6 +1623,14 @@ function downloadProfileResults() {
     `Experience: ${s.experience || ''}`,
     '',
   ];
+  if (profileAnalysis.skillsTable && profileAnalysis.skillsTable.length) {
+    lines.push('SKILLS FRAMEWORK SCORES');
+    lines.push('Skill | Capability | Score | Level | Signal | Evidence');
+    profileAnalysis.skillsTable.forEach(row => {
+      lines.push(`${row.skill || ''} | ${row.capability || ''} | ${row.score ?? 0}% | ${row.proficiencyLevel || ''} | ${row.signalType || ''} | ${row.evidence || ''}`);
+    });
+    lines.push('');
+  }
   CAPABILITY_API_KEYS.forEach((key, i) => {
     const pillar = profileAnalysis[key] || {};
     lines.push('-----------------------------------------------------');
