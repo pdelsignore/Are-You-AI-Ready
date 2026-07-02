@@ -4,3 +4,5 @@ _ref-mind-the-gap/
 .DS_Store
 *.local
 .vercel
+__pycache__/
+*.pyc
