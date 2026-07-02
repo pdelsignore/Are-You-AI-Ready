@@ -2,7 +2,7 @@
 """
 Local development server for AI Readiness profile analysis.
 Run with: python3 server.py
-Requires OPENAI_API_KEY in environment or .env file.
+Requires OPENROUTER_API_KEY in environment or .env file.
 """
 
 import http.server
@@ -14,15 +14,80 @@ import urllib.error
 from pathlib import Path
 
 PORT = 8080
-API_KEY = os.environ.get('OPENAI_API_KEY', '')
+OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions'
+DEFAULT_MODEL = 'openai/gpt-4o'
+MAX_TOKENS = 12000
+SYSTEM_PROMPT = (
+    'You are a workforce skills analyst. Score profiles using the provided Skills Framework. '
+    'Always respond with valid JSON only. No markdown fences. '
+    'Keep string values concise. Do not use double quotes inside string values.'
+)
 
-env_path = Path(__file__).parent / '.env'
-if env_path.exists():
-    with open(env_path) as f:
-        for line in f:
-            line = line.strip()
-            if line.startswith('OPENAI_API_KEY=') and not API_KEY:
-                API_KEY = line.split('=', 1)[1].strip().strip('"').strip("'")
+API_KEY = os.environ.get('OPENROUTER_API_KEY', '')
+MODEL = os.environ.get('OPENROUTER_MODEL', DEFAULT_MODEL)
+SITE_URL = os.environ.get('OPENROUTER_SITE_URL', 'http://localhost:8080')
+APP_TITLE = os.environ.get('OPENROUTER_APP_TITLE', 'AI Readiness Assessment')
+
+
+def load_env_file():
+    global API_KEY, MODEL, SITE_URL, APP_TITLE
+    env_path = Path(__file__).parent / '.env'
+    if not env_path.exists():
+        return
+    for line in env_path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith('#') or line.startswith('/*') or line.startswith('*/'):
+            continue
+        if '=' not in line:
+            continue
+        key, _, val = line.partition('=')
+        key = key.strip()
+        val = val.strip().strip('"').strip("'")
+        if key == 'OPENROUTER_API_KEY' and val:
+            API_KEY = val
+        elif key == 'OPENROUTER_MODEL' and val:
+            MODEL = val
+        elif key == 'OPENROUTER_SITE_URL' and val:
+            SITE_URL = val
+        elif key == 'OPENROUTER_APP_TITLE' and val:
+            APP_TITLE = val
+
+
+load_env_file()
+
+
+def repair_json_text(text):
+    text = str(text).strip()
+    if text.startswith('```'):
+        text = re.sub(r'^```(?:json)?\s*', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'\s*```$', '', text).strip()
+    text = text.replace('\u201c', '"').replace('\u201d', '"')
+    text = text.replace('\u2018', "'").replace('\u2019', "'")
+    text = re.sub(r',(\s*[}\]])', r'\1', text)
+    return text
+
+
+def parse_analysis_content(content, finish_reason=None):
+    if not content or not str(content).strip():
+        if finish_reason == 'length':
+            raise Exception('Analysis response was cut off. Try a shorter document or switch to a faster model.')
+        raise Exception('No analysis content returned from the model.')
+
+    text = repair_json_text(content)
+    candidates = [text]
+    start = text.find('{')
+    end = text.rfind('}')
+    if start != -1 and end > start:
+        candidates.append(text[start:end + 1])
+
+    last_error = None
+    for candidate in candidates:
+        try:
+            return json.loads(candidate)
+        except json.JSONDecodeError as exc:
+            last_error = exc
+
+    raise Exception('Could not parse analysis results') from last_error
 
 
 def load_framework_prompt():
@@ -44,9 +109,11 @@ The four AI readiness capability areas (use for capability field and rollup scor
 
 Based on the profile document:
 1. Provide a brief profile summary.
-2. Build a skillsTable: identify 6–12 AI-relevant skills evidenced in the profile. Score EACH skill using the Skills Framework methodology above.
+2. Build a skillsTable: identify 6–8 AI-relevant skills evidenced in the profile. Score EACH skill using the Skills Framework methodology above.
 3. Compute the 4 capability area scores as the rounded average of skills mapped to that capability (or best evidence if fewer skills).
 4. For each capability area, write a one-sentence summary and 2–3 tailored recommendations.
+
+Keep all string values short (under 120 characters). Do not use double quotes inside string values.
 
 Profile document:
 {profile_text}
@@ -111,7 +178,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def handle_analyze(self):
         if not API_KEY:
-            self.send_json_error(500, 'OPENAI_API_KEY not set. Create a .env file with your API key.')
+            self.send_json_error(500, 'OPENROUTER_API_KEY not set. Create a .env file with your API key.')
             return
 
         try:
@@ -124,50 +191,81 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_json_error(400, 'Could not read enough text from the document. Please upload a valid profile PDF, resume, or career document.')
                 return
 
-            analysis = self.call_openai_api(profile_text)
+            analysis = self.call_openrouter_api(profile_text)
             self.send_json_response(analysis)
 
         except urllib.error.HTTPError as e:
             error_body = e.read().decode()
-            print(f"OpenAI API error: {e.code} - {error_body}")
+            print(f"OpenRouter API error: {e.code} - {error_body}")
             if e.code == 401:
-                self.send_json_error(500, 'API authentication failed. Check your OPENAI_API_KEY.')
+                self.send_json_error(500, 'API authentication failed. Check your OPENROUTER_API_KEY.')
             elif e.code == 429:
                 self.send_json_error(429, 'Rate limit exceeded. Please wait a moment.')
             else:
                 self.send_json_error(500, 'Analysis service error. Please try again.')
         except Exception as e:
             print(f"Error: {e}")
-            self.send_json_error(500, f'Server error: {str(e)}')
+            message = str(e)
+            if isinstance(e, json.JSONDecodeError) or 'parse' in message.lower() or 'delimiter' in message.lower():
+                message = 'Could not parse analysis results. Please try again.'
+            elif not message.startswith('Analysis response') and not message.startswith('No analysis'):
+                message = f'Server error: {message}'
+            self.send_json_error(500, message)
 
-    def call_openai_api(self, profile_text):
-        prompt = build_prompt(profile_text)
+    def openrouter_chat(self, messages):
         request_data = json.dumps({
-            'model': 'gpt-4o',
-            'max_tokens': 4000,
+            'model': MODEL,
+            'max_tokens': MAX_TOKENS,
+            'temperature': 0,
             'response_format': {'type': 'json_object'},
-            'messages': [
-                {'role': 'system', 'content': 'You are a workforce skills analyst. Score profiles using the provided Skills Framework. Always respond with valid JSON only.'},
-                {'role': 'user', 'content': prompt},
-            ],
+            'messages': messages,
         }).encode()
 
         req = urllib.request.Request(
-            'https://api.openai.com/v1/chat/completions',
+            OPENROUTER_API_URL,
             data=request_data,
             headers={
                 'Content-Type': 'application/json',
                 'Authorization': f'Bearer {API_KEY}',
+                'HTTP-Referer': SITE_URL,
+                'X-Title': APP_TITLE,
             },
         )
 
         with urllib.request.urlopen(req) as response:
             result = json.loads(response.read().decode())
-            content = result['choices'][0]['message']['content']
-            json_match = re.search(r'\{[\s\S]*\}', content)
-            if json_match:
-                return json.loads(json_match.group())
-            raise Exception('Could not parse analysis results')
+            choice = result.get('choices', [{}])[0]
+            content = choice.get('message', {}).get('content')
+            finish_reason = choice.get('finish_reason')
+            return content, finish_reason
+
+    def call_openrouter_api(self, profile_text):
+        prompt = build_prompt(profile_text)
+        messages = [
+            {'role': 'system', 'content': SYSTEM_PROMPT},
+            {'role': 'user', 'content': prompt},
+        ]
+
+        content, finish_reason = self.openrouter_chat(messages)
+        try:
+            return parse_analysis_content(content, finish_reason)
+        except Exception:
+            if not content:
+                raise
+
+            print('Initial JSON parse failed; retrying with repair prompt')
+            fix_messages = messages + [
+                {'role': 'assistant', 'content': content},
+                {
+                    'role': 'user',
+                    'content': (
+                        'Your previous response was invalid JSON. Return ONLY a corrected JSON object '
+                        'matching the required schema. No markdown, no commentary.'
+                    ),
+                },
+            ]
+            fixed_content, _ = self.openrouter_chat(fix_messages)
+            return parse_analysis_content(fixed_content, None)
 
     def send_json_response(self, data):
         self.send_response(200)
@@ -189,11 +287,13 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
 
 def main():
     if not API_KEY:
-        print("\n⚠️  WARNING: OPENAI_API_KEY not found!")
+        print("\n⚠️  WARNING: OPENROUTER_API_KEY not found!")
         print("   Create a .env file in this directory with:")
-        print("   OPENAI_API_KEY=sk-your-key-here\n")
+        print("   OPENROUTER_API_KEY=sk-or-v1-your-key-here")
+        print("   OPENROUTER_MODEL=openai/gpt-4o\n")
     else:
-        print(f"✓ API key loaded (ends with ...{API_KEY[-4:]})")
+        print(f"✓ OpenRouter API key loaded (ends with ...{API_KEY[-4:]})")
+        print(f"✓ Model: {MODEL}")
 
     print(f"\n🚀 Server running — open in your browser:\n")
     print(f"   http://localhost:{PORT}\n")

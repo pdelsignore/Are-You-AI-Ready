@@ -287,6 +287,14 @@
       color: var(--lp);
       line-height: 0;
     }
+    .path-card-category {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--tq);
+      margin-bottom: 0.5rem;
+    }
     .path-card-title {
       font-size: 1.125rem;
       font-weight: 700;
@@ -923,9 +931,11 @@
       How AI-Ready<br><span style="color:#fff">Are You?</span>
     </h1>
 
-    <p style="font-size:15px;line-height:1.7;color:rgba(255,255,255,0.6);max-width:520px;margin-bottom:28px;">
-      Benchmark your skills across the 4 capabilities employers need most — then get a personalized plan to close the gaps.
+    <p style="font-size:15px;line-height:1.7;color:rgba(255,255,255,0.6);max-width:560px;margin-bottom:28px;">
+      Two ways to assess the same four skills — rate your proficiency, or analyze what your profile documents show.
     </p>
+
+    <p class="eyebrow" style="color:rgba(193,191,255,0.55);margin-bottom:1rem;">Choose your assessment type</p>
 
     <div class="path-cards">
 
@@ -935,9 +945,10 @@
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
           </svg>
         </div>
-        <h2 class="path-card-title">Answer Questions</h2>
-        <p class="path-card-desc">Quick questionnaire about your role, skills, and experience</p>
-        <span class="path-card-badge">~3 minutes</span>
+        <p class="path-card-category">Proficiency</p>
+        <h2 class="path-card-title">Rate your proficiency</h2>
+        <p class="path-card-desc">Answer 12 questions on how you use and apply AI across four capability areas — based on your own experience.</p>
+        <span class="path-card-badge">Self-assessment</span>
       </button>
 
       <button type="button" class="path-card" onclick="goToUpload()">
@@ -949,9 +960,10 @@
             <polyline points="9 15 12 12 15 15"/>
           </svg>
         </div>
-        <h2 class="path-card-title">Upload profile</h2>
-        <p class="path-card-desc">Upload a resume, CV, or any profile document with information about your role, skills, and experience</p>
-        <span class="path-card-badge">More comprehensive</span>
+        <p class="path-card-category">Your documents</p>
+        <h2 class="path-card-title">Analyze your profile</h2>
+        <p class="path-card-desc">Upload a CV, LinkedIn export, or job profile — we score what your document shows for each skill using the Skills Framework.</p>
+        <span class="path-card-badge">Evidence-based</span>
       </button>
 
     </div>
@@ -972,7 +984,7 @@
   </header>
 
   <div class="container fade-up">
-    <p class="eyebrow" style="color:var(--tq);margin-bottom:24px;">Answer Questions</p>
+    <p class="eyebrow" style="color:var(--tq);margin-bottom:24px;">Proficiency assessment</p>
 
     <h1 style="font-size:clamp(28px,3.5vw,38px);font-weight:700;line-height:1.15;color:#fff;margin-bottom:12px;font-variant-ligatures:none;">
       Before we begin
@@ -1014,14 +1026,14 @@
   </header>
 
   <div class="container fade-up">
-    <p class="eyebrow" style="color:var(--tq);margin-bottom:24px;">Workforce AI Readiness</p>
+    <p class="eyebrow" style="color:var(--tq);margin-bottom:24px;">Profile analysis</p>
 
     <h1 style="font-size:clamp(28px,3.5vw,38px);font-weight:700;line-height:1.15;color:#fff;margin-bottom:12px;font-variant-ligatures:none;">
-      Upload profile
+      Analyze your profile
     </h1>
 
     <p style="font-size:15px;line-height:1.7;color:rgba(255,255,255,0.6);max-width:560px;margin-bottom:2rem;">
-      Upload a LinkedIn profile export, resume, CV, or any career document with information about your role, skills, and experience for a comprehensive readiness analysis.
+      Upload a CV, LinkedIn export, or job profile. We'll analyze your document and score what it shows for each skill.
     </p>
 
     <div id="upload-form-panel">
@@ -1086,7 +1098,7 @@
   </header>
 
   <div class="profile-results-inner fade-up">
-    <h3 class="profile-results-title">Your AI Readiness Assessment Results</h3>
+    <h3 class="profile-results-title" id="profile-results-title">Your AI Readiness Assessment Results</h3>
 
     <div class="profile-result-summary" id="profile-result-summary"></div>
 
@@ -1535,6 +1547,14 @@ function displayProfileResults(analysis, source) {
   if (backBtn) {
     backBtn.textContent = resultSource === 'questions' ? 'Retake assessment' : 'Analyze another profile';
   }
+
+  const resultsTitle = document.getElementById('profile-results-title');
+  if (resultsTitle) {
+    resultsTitle.textContent = resultSource === 'upload'
+      ? 'Your Profile Analysis Results'
+      : 'Your AI Readiness Assessment Results';
+  }
+
   const scores = CAPABILITY_API_KEYS.map(key => analysis[key]?.score ?? 0);
   const overall = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
 

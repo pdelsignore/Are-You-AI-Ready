@@ -1,6 +1,51 @@
 import https from 'https';
 import { buildFrameworkPromptSection } from './skills-framework.js';
 
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const DEFAULT_MODEL = 'openai/gpt-4o';
+const MAX_TOKENS = 12000;
+const SYSTEM_PROMPT = 'You are a workforce skills analyst. Score profiles using the provided Skills Framework. Always respond with valid JSON only. No markdown fences. Keep string values concise. Do not use double quotes inside string values.';
+
+function repairJsonText(text) {
+  let cleaned = String(text).trim();
+  if (cleaned.startsWith('```')) {
+    cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+  }
+  cleaned = cleaned.replace(/[\u201c\u201d]/g, '"').replace(/[\u2018\u2019]/g, "'");
+  cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
+  return cleaned;
+}
+
+function parseAnalysisContent(content, finishReason) {
+  if (!content || !String(content).trim()) {
+    if (finishReason === 'length') {
+      throw new Error('Analysis response was cut off. Try a shorter document or switch to a faster model.');
+    }
+    throw new Error('No analysis content returned from the model.');
+  }
+
+  const text = repairJsonText(content);
+  const candidates = [text];
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start !== -1 && end > start) {
+    candidates.push(text.slice(start, end + 1));
+  }
+
+  let lastError = null;
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  const message = new Error('Could not parse analysis results');
+  message.cause = lastError;
+  throw message;
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -14,9 +59,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  const model = process.env.OPENROUTER_MODEL || DEFAULT_MODEL;
+
   if (!apiKey) {
-    console.error('OPENAI_API_KEY environment variable not set');
+    console.error('OPENROUTER_API_KEY environment variable not set');
     return res.status(500).json({ error: 'Server configuration error. API key not set.' });
   }
 
@@ -30,14 +77,29 @@ export default async function handler(req, res) {
     }
 
     const prompt = buildPrompt(profileText);
-    const result = await callOpenAI(apiKey, prompt);
+    const messages = [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: prompt },
+    ];
 
-    const jsonMatch = result.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      return res.status(500).json({ error: 'Could not parse analysis results. Please try again.' });
+    let { content, finishReason } = await callOpenRouter(apiKey, model, messages);
+    let analysis;
+    try {
+      analysis = parseAnalysisContent(content, finishReason);
+    } catch (parseError) {
+      if (!content) throw parseError;
+      console.error('Initial JSON parse failed; retrying with repair prompt');
+      const fixMessages = messages.concat([
+        { role: 'assistant', content },
+        {
+          role: 'user',
+          content: 'Your previous response was invalid JSON. Return ONLY a corrected JSON object matching the required schema. No markdown, no commentary.',
+        },
+      ]);
+      ({ content, finishReason } = await callOpenRouter(apiKey, model, fixMessages));
+      analysis = parseAnalysisContent(content, finishReason);
     }
 
-    const analysis = JSON.parse(jsonMatch[0]);
     return res.status(200).json(analysis);
   } catch (error) {
     console.error('Analysis error:', error);
@@ -47,6 +109,9 @@ export default async function handler(req, res) {
     }
     if (error.message?.includes('429')) {
       return res.status(429).json({ error: 'Service is busy. Please try again in a moment.' });
+    }
+    if (error.message?.includes('parse') || error.message?.includes('delimiter') || error.message?.includes('JSON')) {
+      return res.status(500).json({ error: 'Could not parse analysis results. Please try again.' });
     }
 
     return res.status(500).json({ error: 'An error occurred during analysis. Please try again.' });
@@ -68,9 +133,11 @@ The four AI readiness capability areas (use for capability field and rollup scor
 
 Based on the profile document:
 1. Provide a brief profile summary.
-2. Build a skillsTable: identify 6–12 AI-relevant skills evidenced in the profile. Score EACH skill using the Skills Framework methodology above.
+2. Build a skillsTable: identify 6–8 AI-relevant skills evidenced in the profile. Score EACH skill using the Skills Framework methodology above.
 3. Compute the 4 capability area scores as the rounded average of skills mapped to that capability (or best evidence if fewer skills).
 4. For each capability area, write a one-sentence summary and 2–3 tailored recommendations.
+
+Keep all string values short (under 120 characters). Do not use double quotes inside string values.
 
 Profile document:
 ${profileText}
@@ -116,41 +183,49 @@ Respond with valid JSON in this exact format:
 }`;
 }
 
-function callOpenAI(apiKey, prompt) {
+function callOpenRouter(apiKey, model, messages) {
   return new Promise((resolve, reject) => {
-    const data = JSON.stringify({
-      model: 'gpt-4o',
-      max_tokens: 4000,
+    const siteUrl = process.env.OPENROUTER_SITE_URL || 'http://localhost:8080';
+    const appTitle = process.env.OPENROUTER_APP_TITLE || 'AI Readiness Assessment';
+
+    const body = JSON.stringify({
+      model,
+      max_tokens: MAX_TOKENS,
+      temperature: 0,
       response_format: { type: 'json_object' },
-      messages: [
-        { role: 'system', content: 'You are a workforce skills analyst. Score profiles using the provided Skills Framework. Always respond with valid JSON only.' },
-        { role: 'user', content: prompt },
-      ],
+      messages,
     });
 
+    const url = new URL(OPENROUTER_API_URL);
     const options = {
-      hostname: 'api.openai.com',
+      hostname: url.hostname,
       port: 443,
-      path: '/v1/chat/completions',
+      path: url.pathname,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
-        'Content-Length': Buffer.byteLength(data),
+        'HTTP-Referer': siteUrl,
+        'X-Title': appTitle,
+        'Content-Length': Buffer.byteLength(body),
       },
     };
 
     const req = https.request(options, (response) => {
-      let body = '';
-      response.on('data', (chunk) => { body += chunk; });
+      let data = '';
+      response.on('data', (chunk) => { data += chunk; });
       response.on('end', () => {
         if (response.statusCode !== 200) {
-          reject(new Error(`API error ${response.statusCode}: ${body}`));
+          reject(new Error(`API error ${response.statusCode}: ${data}`));
           return;
         }
         try {
-          const parsed = JSON.parse(body);
-          resolve(parsed.choices[0].message.content);
+          const parsed = JSON.parse(data);
+          const choice = parsed.choices?.[0] || {};
+          resolve({
+            content: choice.message?.content,
+            finishReason: choice.finish_reason,
+          });
         } catch (e) {
           reject(new Error('Failed to parse API response'));
         }
@@ -158,7 +233,7 @@ function callOpenAI(apiKey, prompt) {
     });
 
     req.on('error', reject);
-    req.write(data);
+    req.write(body);
     req.end();
   });
 }
