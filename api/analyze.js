@@ -1,4 +1,3 @@
-import https from 'https';
 import { buildFrameworkPromptSection } from './skills-framework.js';
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
@@ -46,6 +45,26 @@ function parseAnalysisContent(content, finishReason) {
   throw message;
 }
 
+function parseRequestBody(req) {
+  const raw = req.body;
+  if (!raw) return {};
+  if (typeof raw === 'string') {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return {};
+    }
+  }
+  if (Buffer.isBuffer(raw)) {
+    try {
+      return JSON.parse(raw.toString('utf8'));
+    } catch {
+      return {};
+    }
+  }
+  return raw;
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -68,7 +87,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { profileText } = req.body;
+    const { profileText } = parseRequestBody(req);
 
     if (!profileText || profileText.trim().length < 80) {
       return res.status(400).json({
@@ -183,57 +202,40 @@ Respond with valid JSON in this exact format:
 }`;
 }
 
-function callOpenRouter(apiKey, model, messages) {
-  return new Promise((resolve, reject) => {
-    const siteUrl = process.env.OPENROUTER_SITE_URL || 'http://localhost:8080';
-    const appTitle = process.env.OPENROUTER_APP_TITLE || 'AI Readiness Assessment';
+async function callOpenRouter(apiKey, model, messages) {
+  const siteUrl = (process.env.OPENROUTER_SITE_URL || 'https://are-you-ai-ready-blue.vercel.app').trim();
+  const appTitle = (process.env.OPENROUTER_APP_TITLE || 'AI Readiness Assessment').trim();
 
-    const body = JSON.stringify({
+  const response = await fetch(OPENROUTER_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+      'HTTP-Referer': siteUrl,
+      'X-Title': appTitle,
+    },
+    body: JSON.stringify({
       model,
       max_tokens: MAX_TOKENS,
       temperature: 0,
       response_format: { type: 'json_object' },
       messages,
-    });
-
-    const url = new URL(OPENROUTER_API_URL);
-    const options = {
-      hostname: url.hostname,
-      port: 443,
-      path: url.pathname,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': siteUrl,
-        'X-Title': appTitle,
-        'Content-Length': Buffer.byteLength(body),
-      },
-    };
-
-    const req = https.request(options, (response) => {
-      let data = '';
-      response.on('data', (chunk) => { data += chunk; });
-      response.on('end', () => {
-        if (response.statusCode !== 200) {
-          reject(new Error(`API error ${response.statusCode}: ${data}`));
-          return;
-        }
-        try {
-          const parsed = JSON.parse(data);
-          const choice = parsed.choices?.[0] || {};
-          resolve({
-            content: choice.message?.content,
-            finishReason: choice.finish_reason,
-          });
-        } catch (e) {
-          reject(new Error('Failed to parse API response'));
-        }
-      });
-    });
-
-    req.on('error', reject);
-    req.write(body);
-    req.end();
+    }),
   });
+
+  const data = await response.text();
+  if (!response.ok) {
+    throw new Error(`API error ${response.status}: ${data}`);
+  }
+
+  try {
+    const parsed = JSON.parse(data);
+    const choice = parsed.choices?.[0] || {};
+    return {
+      content: choice.message?.content,
+      finishReason: choice.finish_reason,
+    };
+  } catch {
+    throw new Error('Failed to parse API response');
+  }
 }
